@@ -4,7 +4,7 @@ import {
   TableHead, TableRow, Paper, IconButton, Chip, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Select, MenuItem, FormControl,
   InputLabel, Switch, FormControlLabel, CircularProgress, Alert, Tooltip,
-  InputAdornment,
+  InputAdornment, TablePagination,
 } from '@mui/material';
 import {
   AddOutlined, EditOutlined, DeleteOutlined, SearchOutlined,
@@ -34,6 +34,9 @@ export default function UsersPage() {
   const [error,   setError]   = useState('');
   const [search,  setSearch]  = useState('');
 
+  const [page,        setPage]        = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing,    setEditing]    = useState<UserAdmin | null>(null);
   const [form,       setForm]       = useState(EMPTY_FORM);
@@ -51,11 +54,13 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(0); }, [search]);
 
   const filtered = users.filter(u =>
     `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.cedula}`
       .toLowerCase().includes(search.toLowerCase()),
   );
+  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormError(''); setDialogOpen(true); };
   const openEdit   = (u: UserAdmin) => {
@@ -142,13 +147,13 @@ export default function UsersPage() {
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><CircularProgress size={28} /></TableCell></TableRow>
-              ) : filtered.length === 0 ? (
+              ) : paginated.length === 0 ? (
                 <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: theme.palette.text.disabled }}>Sin resultados</TableCell></TableRow>
-              ) : filtered.map(u => (
+              ) : paginated.map(u => (
                 <TableRow key={u.id} hover>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>{u.first_name} {u.last_name}</Typography>
-                    <Typography variant="caption" sx={{ color: theme.palette.text.disabled }}>@{u.username}</Typography>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>@{u.username}</Typography>
                   </TableCell>
                   <TableCell sx={{ fontSize: '0.82rem' }}>{u.email}</TableCell>
                   <TableCell sx={{ fontSize: '0.82rem' }}>{u.cedula}</TableCell>
@@ -159,8 +164,8 @@ export default function UsersPage() {
                   <TableCell>
                     <Chip label={u.is_active ? 'Activo' : 'Inactivo'} size="small"
                       sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600,
-                        color: u.is_active ? theme.palette.secondary.main : theme.palette.text.disabled,
-                        bgcolor: u.is_active ? `${theme.palette.secondary.main}22` : (isDark ? 'rgba(255,255,255,0.06)' : '#F1F3F5') }} />
+                        color: u.is_active ? theme.palette.secondary.main : theme.palette.text.secondary,
+                        bgcolor: u.is_active ? `${theme.palette.secondary.main}22` : (isDark ? 'rgba(255,255,255,0.1)' : '#F1F3F5') }} />
                   </TableCell>
                   <TableCell>
                     <Tooltip title="Editar"><IconButton size="small" onClick={() => openEdit(u)}><EditOutlined fontSize="small" /></IconButton></Tooltip>
@@ -171,6 +176,17 @@ export default function UsersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={page}
+          onPageChange={(_, p) => setPage(p)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => { setRowsPerPage(+e.target.value); setPage(0); }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          labelRowsPerPage="Filas:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </Paper>
 
       {/* Create/Edit Dialog */}

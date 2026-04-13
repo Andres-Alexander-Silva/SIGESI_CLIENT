@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#C8102E"/>
+  <!-- Top collar -->
+  <rect x="9" y="5" width="14" height="2.5" rx="1.25" fill="white"/>
+  <!-- Neck -->
+  <rect x="13.5" y="7.5" width="5" height="7" fill="white"/>
+  <!-- Flask body -->
+  <path d="M13.5 14.5 L7.5 25.5 Q7 27 8.5 27 h15 q1.5 0 1-1.5 L18.5 14.5 Z" fill="white"/>
+  <!-- Bubbles inside flask -->
+  <circle cx="13" cy="22" r="1.4" fill="#C8102E" opacity="0.75"/>
+  <circle cx="17" cy="24" r="1" fill="#C8102E" opacity="0.55"/>
+</svg>

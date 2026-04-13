@@ -105,34 +105,26 @@ export interface UserAdmin {
 export interface MenuAdmin {
   id: number;
   nombre: string;
-  icono?: string;
-  orden: number;
-  url?: string;
-  is_active: boolean;
-  menu_padre: number | null;
-  created_at: string;
-  updated_at: string;
+  icono: string;
+  estado?: boolean;
 }
 
 export interface OpcionAdmin {
   id: number;
-  nombre: string;
-  codigo: string;
-  descripcion?: string;
-  accion: AccionType;
   menu: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  nombre: string;
+  url: string;
+  estado?: boolean;
 }
 
 export interface PermisoAdmin {
   id: number;
   rol: UserRole;
   opcion: number;
-  permitido: boolean;
-  created_at: string;
-  updated_at: string;
+  puede_consultar?: boolean;
+  puede_crear?: boolean;
+  puede_actualizar?: boolean;
+  puede_eliminar?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

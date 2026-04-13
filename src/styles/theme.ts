@@ -83,7 +83,7 @@ const buildTheme = (mode: 'light' | 'dark'): ThemeOptions => {
         ? { default: PALETTE.dark.bg, paper: PALETTE.dark.paper }
         : { default: PALETTE.grey[50],   paper: '#FFFFFF' },
       text: isDark
-        ? { primary: PALETTE.grey[100], secondary: PALETTE.grey[500], disabled: PALETTE.grey[700] }
+        ? { primary: PALETTE.grey[100], secondary: PALETTE.grey[400], disabled: PALETTE.grey[600] }
         : { primary: PALETTE.grey[900], secondary: PALETTE.grey[700], disabled: PALETTE.grey[500] },
       divider: isDark ? PALETTE.dark.border : PALETTE.grey[200],
     },

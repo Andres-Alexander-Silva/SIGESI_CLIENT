@@ -270,6 +270,11 @@ export default function Sidebar({ open, isMobile, onClose, topOffset = 64 }: Sid
             width: DRAWER_WIDTH_OPEN,
             boxSizing: 'border-box',
             borderRight: `1px solid ${theme.palette.divider}`,
+            top: `${topOffset}px`,
+            height: `calc(100% - ${topOffset}px)`,
+          },
+          '& .MuiBackdrop-root': {
+            top: `${topOffset}px`,
           },
         }}
       >

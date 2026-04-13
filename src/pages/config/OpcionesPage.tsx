@@ -4,7 +4,7 @@ import {
   TableHead, TableRow, Paper, IconButton, Chip, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Select, MenuItem, FormControl,
   InputLabel, Switch, FormControlLabel, CircularProgress, Alert, Tooltip,
-  InputAdornment,
+  InputAdornment, TablePagination,
 } from '@mui/material';
 import {
   AddOutlined, EditOutlined, DeleteOutlined, SearchOutlined,
@@ -12,18 +12,9 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { opcionesService, menusAdminService } from '@/services/config.service';
-import { OpcionAdmin, MenuAdmin, AccionType } from '@/types';
+import { OpcionAdmin, MenuAdmin } from '@/types';
 
-const ACCIONES: { value: AccionType; label: string }[] = [
-  { value: 'ver',      label: 'Ver' },
-  { value: 'crear',    label: 'Crear' },
-  { value: 'editar',   label: 'Editar' },
-  { value: 'eliminar', label: 'Eliminar' },
-  { value: 'aprobar',  label: 'Aprobar' },
-  { value: 'exportar', label: 'Exportar' },
-];
-
-const EMPTY_FORM = { nombre: '', codigo: '', descripcion: '', accion: 'ver' as AccionType, menu: '' as string | number, is_active: true };
+const EMPTY_FORM = { menu: '' as string | number, nombre: '', url: '', estado: true };
 
 export default function OpcionesPage() {
   const theme  = useTheme();
@@ -34,6 +25,9 @@ export default function OpcionesPage() {
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
   const [search,   setSearch]   = useState('');
+
+  const [page,        setPage]        = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing,    setEditing]    = useState<OpcionAdmin | null>(null);
@@ -54,15 +48,19 @@ export default function OpcionesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(0); }, [search]);
+
+  const getMenuNombre = (id: number) => menus.find(m => m.id === id)?.nombre ?? `#${id}`;
 
   const filtered = opciones.filter(o =>
-    `${o.nombre} ${o.codigo}`.toLowerCase().includes(search.toLowerCase()),
+    `${o.nombre} ${o.url}`.toLowerCase().includes(search.toLowerCase()),
   );
+  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormError(''); setDialogOpen(true); };
   const openEdit   = (o: OpcionAdmin) => {
     setEditing(o);
-    setForm({ nombre: o.nombre, codigo: o.codigo, descripcion: o.descripcion ?? '', accion: o.accion, menu: o.menu, is_active: o.is_active });
+    setForm({ menu: o.menu, nombre: o.nombre, url: o.url, estado: o.estado ?? true });
     setFormError(''); setDialogOpen(true);
   };
 
@@ -70,12 +68,10 @@ export default function OpcionesPage() {
     setSaving(true); setFormError('');
     try {
       const payload: Partial<OpcionAdmin> = {
-        nombre:      form.nombre,
-        codigo:      form.codigo,
-        descripcion: form.descripcion || undefined,
-        accion:      form.accion,
-        menu:        Number(form.menu),
-        is_active:   form.is_active,
+        menu:   Number(form.menu),
+        nombre: form.nombre,
+        url:    form.url,
+        estado: form.estado,
       };
       if (editing) await opcionesService.update(editing.id, payload);
       else         await opcionesService.create(payload);
@@ -91,15 +87,6 @@ export default function OpcionesPage() {
     try { await opcionesService.remove(deleteId); setDeleteId(null); load(); }
     catch { setError('No se pudo eliminar la opción.'); }
     finally { setDeleteLoading(false); }
-  };
-
-  const accionColor = (a: AccionType) => {
-    const map: Record<AccionType, string> = {
-      ver: theme.palette.info.main,  crear: theme.palette.secondary.main,
-      editar: theme.palette.warning.main, eliminar: theme.palette.error.main,
-      aprobar: '#8B5CF6', exportar: theme.palette.text.secondary,
-    };
-    return map[a] ?? theme.palette.text.secondary;
   };
 
   return (
@@ -121,7 +108,7 @@ export default function OpcionesPage() {
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
 
       <TextField
-        size="small" placeholder="Buscar por nombre o código…" value={search}
+        size="small" placeholder="Buscar por nombre o URL…" value={search}
         onChange={e => setSearch(e.target.value)}
         slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ fontSize: 18 }} /></InputAdornment> } }}
         sx={{ mb: 2, width: { xs: '100%', sm: 340 } }}
@@ -132,31 +119,30 @@ export default function OpcionesPage() {
           <Table size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
-                {['Nombre', 'Código', 'Acción', 'Menú', 'Estado', 'Acciones'].map(h => (
+                {['Nombre', 'URL', 'Menú', 'Estado', 'Acciones'].map(h => (
                   <TableCell key={h} sx={{ fontWeight: 600, fontSize: '0.78rem', color: theme.palette.text.disabled }}>{h}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><CircularProgress size={28} /></TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: theme.palette.text.disabled }}>Sin resultados</TableCell></TableRow>
-              ) : filtered.map(o => (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4 }}><CircularProgress size={28} /></TableCell></TableRow>
+              ) : paginated.length === 0 ? (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: theme.palette.text.disabled }}>Sin resultados</TableCell></TableRow>
+              ) : paginated.map(o => (
                 <TableRow key={o.id} hover>
                   <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>{o.nombre}</TableCell>
-                  <TableCell><Typography variant="caption" sx={{ fontFamily: 'monospace', bgcolor: isDark ? 'rgba(255,255,255,0.06)' : '#F1F3F5', px: 0.8, py: 0.3, borderRadius: 1 }}>{o.codigo}</Typography></TableCell>
                   <TableCell>
-                    <Chip label={o.accion} size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600, color: accionColor(o.accion), bgcolor: `${accionColor(o.accion)}22` }} />
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F3F5', px: 0.8, py: 0.3, borderRadius: 1 }}>
+                      {o.url}
+                    </Typography>
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.82rem', color: theme.palette.text.secondary }}>
-                    {menus.find(m => m.id === o.menu)?.nombre ?? `#${o.menu}`}
-                  </TableCell>
+                  <TableCell sx={{ fontSize: '0.82rem', color: theme.palette.text.secondary }}>{getMenuNombre(o.menu)}</TableCell>
                   <TableCell>
-                    <Chip label={o.is_active ? 'Activo' : 'Inactivo'} size="small"
+                    <Chip label={o.estado !== false ? 'Activo' : 'Inactivo'} size="small"
                       sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600,
-                        color: o.is_active ? theme.palette.secondary.main : theme.palette.text.disabled,
-                        bgcolor: o.is_active ? `${theme.palette.secondary.main}22` : (isDark ? 'rgba(255,255,255,0.06)' : '#F1F3F5') }} />
+                        color: o.estado !== false ? theme.palette.secondary.main : theme.palette.text.secondary,
+                        bgcolor: o.estado !== false ? `${theme.palette.secondary.main}22` : (isDark ? 'rgba(255,255,255,0.1)' : '#F1F3F5') }} />
                   </TableCell>
                   <TableCell>
                     <Tooltip title="Editar"><IconButton size="small" onClick={() => openEdit(o)}><EditOutlined fontSize="small" /></IconButton></Tooltip>
@@ -167,6 +153,17 @@ export default function OpcionesPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={page}
+          onPageChange={(_, p) => setPage(p)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => { setRowsPerPage(+e.target.value); setPage(0); }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          labelRowsPerPage="Filas:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </Paper>
 
       {/* Create/Edit Dialog */}
@@ -176,24 +173,17 @@ export default function OpcionesPage() {
         </DialogTitle>
         <DialogContent dividers>
           {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-            <TextField label="Nombre *" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} size="small" sx={{ gridColumn: '1 / -1' }} />
-            <TextField label="Código único *" value={form.codigo} onChange={e => setForm(f => ({ ...f, codigo: e.target.value }))} size="small" placeholder="ej: semilleros.ver" />
-            <FormControl size="small">
-              <InputLabel>Acción *</InputLabel>
-              <Select label="Acción *" value={form.accion} onChange={e => setForm(f => ({ ...f, accion: e.target.value as AccionType }))}>
-                {ACCIONES.map(a => <MenuItem key={a.value} value={a.value}>{a.label}</MenuItem>)}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ gridColumn: '1 / -1' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField label="Nombre *" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} size="small" />
+            <TextField label="URL *" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} size="small" placeholder="ej: /configuracion/usuarios" />
+            <FormControl size="small" fullWidth>
               <InputLabel>Menú *</InputLabel>
               <Select label="Menú *" value={form.menu} onChange={e => setForm(f => ({ ...f, menu: e.target.value }))}>
                 {menus.map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
               </Select>
             </FormControl>
-            <TextField label="Descripción" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} size="small" multiline rows={2} sx={{ gridColumn: '1 / -1' }} />
             <FormControlLabel
-              control={<Switch checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} color="success" />}
+              control={<Switch checked={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.checked }))} color="success" />}
               label="Opción activa"
             />
           </Box>
