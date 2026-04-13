@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Variables CSS — paleta UFPS
+   Fuente única de verdad para colores. Si necesitas cambiar la identidad
+   visual, edita estos valores y se propagan a todo el CSS personalizado.
+   Los componentes MUI usan el tema de theme.ts (que comparte los mismos valores).
+──────────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Colores de marca */
+  --color-primary:        #C8102E;
+  --color-primary-dark:   #A00D24;
+  --color-primary-darker: #7A0A1B;
+  --color-primary-light:  #E8334F;
+
+  --color-secondary:      #2D6E3C;
+  --color-secondary-dark: #1E5A2D;
+  --color-secondary-light:#3D8F50;
+
+  --color-warning:        #E87722;
+  --color-warning-dark:   #C56118;
+  --color-warning-light:  #F59B4B;
+
+  --color-info:           #3B5BDB;
+
+  /* Escala de grises */
+  --gray-50:  #F8F9FA;
+  --gray-100: #F1F3F5;
+  --gray-200: #E9ECEF;
+  --gray-300: #DEE2E6;
+  --gray-400: #CED4DA;
+  --gray-500: #ADB5BD;
+  --gray-600: #868E96;
+  --gray-700: #495057;
+  --gray-800: #343A40;
+  --gray-900: #212529;
+
+  /* Tokens semánticos — modo claro (por defecto) */
+  --bg-default:    var(--gray-50);
+  --bg-paper:      #FFFFFF;
+  --bg-surface:    var(--gray-100);
+  --text-primary:  var(--gray-900);
+  --text-secondary:var(--gray-700);
+  --text-muted:    var(--gray-600);
+  --text-disabled: var(--gray-500);
+  --border-color:  var(--gray-200);
+
+  /* Scrollbar */
+  --scrollbar-track: var(--gray-100);
+  --scrollbar-thumb: var(--gray-400);
+  --scrollbar-thumb-hover: var(--gray-500);
+}
+
+/* Tokens semánticos — modo oscuro */
+[data-theme='dark'] {
+  --bg-default:    #0D1117;
+  --bg-paper:      #161B22;
+  --bg-surface:    #21262D;
+  --text-primary:  var(--gray-100);
+  --text-secondary:var(--gray-500);
+  --text-muted:    var(--gray-600);
+  --text-disabled: var(--gray-700);
+  --border-color:  #30363D;
+
+  --scrollbar-track: #1C2128;
+  --scrollbar-thumb: #30363D;
+  --scrollbar-thumb-hover: #484F58;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base
+──────────────────────────────────────────────────────────────────────────────── */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background-color: var(--bg-default);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar personalizado
+──────────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
