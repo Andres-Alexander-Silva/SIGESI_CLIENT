@@ -14,7 +14,7 @@ import { Menu, Opcion, UserPermissionsResponse } from "@/types";
  *  - Menú con N > 1 opciones → nodo padre expandible, children = opciones
  *  - Dashboard               → siempre hoja, url fija "/dashboard"
  */
-function buildSidebarTree(rawMenus: any[]): Menu[] {
+export function buildSidebarTree(rawMenus: any[]): Menu[] {
   return rawMenus.map((m, idx): Menu => {
     const opciones: Opcion[] = m.opciones ?? [];
 

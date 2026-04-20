@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { permissionsService } from '@/services/permissions.service';
+import { permissionsService, buildSidebarTree } from '@/services/permissions.service';
 import { usePermissionsWebSocket } from '@/hooks/usePermissionsWebSocket';
 import { Menu, AccionType } from '@/types';
 
@@ -123,19 +123,20 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const updatePermisosFromWebSocket = useCallback(
     (permisos: any) => {
       console.log('🔄 Actualización de permisos recibida del WebSocket:', permisos);
-      
-      // Si el WebSocket trae los permisos actualizados, usarlos directamente
-      if (permisos.menus) {
-        console.log('📨 Usando permisos del mensaje WebSocket');
-        setMenus(permisos.menus);
-        setPermIndex(buildIndex(permisos.menus));
+
+      if (permisos?.menus) {
+        // Los datos que llegan del WebSocket son los mismos "raw" que devuelve
+        // la API, así que hay que construir el árbol igual que en la carga inicial.
+        console.log('📨 Procesando permisos del WebSocket con buildSidebarTree');
+        const builtMenus = buildSidebarTree(permisos.menus);
+        setMenus(builtMenus);
+        setPermIndex(buildIndex(builtMenus));
         if (permisos.rol) {
           setRol(permisos.rol);
         }
       } else {
-        // Si no, recargar desde la API para asegurar que están actualizados
-        // Esto ejecuta el mismo endpoint que al iniciar sesión (/config/users/mis-permisos/)
-        console.log('🔄 Recargando permisos desde la API');
+        // Si el mensaje no trae menus, recargar desde la API como fallback
+        console.log('🔄 Recargando permisos desde la API (fallback)');
         fetch();
       }
     },
