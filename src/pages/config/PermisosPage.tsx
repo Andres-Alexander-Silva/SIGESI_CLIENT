@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { permisosService, opcionesService } from '@/services/config.service';
+import { formatApiError } from '@/utils/apiError';
 import { PermisoAdmin, OpcionAdmin, UserRole } from '@/types';
 
 const ROLES: { value: UserRole; label: string }[] = [
@@ -20,7 +21,6 @@ const ROLES: { value: UserRole; label: string }[] = [
   { value: 'director_semillero', label: 'Director de Semillero' },
   { value: 'lider_estudiantil',  label: 'Líder Estudiantil' },
   { value: 'estudiante',         label: 'Estudiante' },
-  { value: 'comite',             label: 'Comité' },
 ];
 
 const EMPTY_FORM = {
@@ -105,7 +105,7 @@ export default function PermisosPage() {
       else         await permisosService.create(payload);
       setDialogOpen(false); load();
     } catch (e: any) {
-      setFormError(e?.response?.data ? JSON.stringify(e.response.data) : 'Error al guardar.');
+      setFormError(formatApiError(e, 'Error al guardar.'));
     } finally { setSaving(false); }
   };
 

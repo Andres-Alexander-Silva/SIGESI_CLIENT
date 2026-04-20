@@ -20,7 +20,6 @@ const ROLES: { value: UserRole; label: string }[] = [
   { value: 'director_semillero', label: 'Director de Semillero' },
   { value: 'lider_estudiantil',  label: 'Líder Estudiantil' },
   { value: 'estudiante',         label: 'Estudiante' },
-  { value: 'comite',             label: 'Comité' },
 ];
 
 const EMPTY_FORM = { username: '', email: '', password: '', first_name: '', last_name: '', cedula: '', telefono: '', rol: 'estudiante' as UserRole, is_active: true };
@@ -81,7 +80,16 @@ export default function UsersPage() {
       setDialogOpen(false);
       load();
     } catch (e: any) {
-      const msg = e?.response?.data ? JSON.stringify(e.response.data) : 'Error al guardar.';
+      let msg = 'Error al guardar.';
+      const data = e?.response?.data;
+      if (data && typeof data === 'object') {
+        // Si es un objeto tipo { campo: ["mensaje"] }
+        msg = Object.entries(data)
+          .map(([field, errors]) => Array.isArray(errors) ? errors.join(' ') : String(errors))
+          .join(' ');
+      } else if (typeof data === 'string') {
+        msg = data;
+      }
       setFormError(msg);
     } finally { setSaving(false); }
   };

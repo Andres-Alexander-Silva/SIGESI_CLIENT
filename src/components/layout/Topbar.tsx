@@ -26,6 +26,7 @@ import { useTheme } from '@mui/material/styles';
 import { useAuth } from '@/context/AuthContext';
 import { useThemeMode } from '@/context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { WebSocketStatusIndicator } from '@/components/WebSocketStatusIndicator';
 
 interface TopbarProps {
   sidebarOpen: boolean;
@@ -87,6 +88,11 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }: TopbarProps) {
             {mode === 'dark' ? <LightModeOutlined /> : <DarkModeOutlined />}
           </IconButton>
         </Tooltip>
+
+        {/* Indicador WebSocket */}
+        {/* <Box sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>
+          <WebSocketStatusIndicator />
+        </Box> */}
 
         {/* Notificaciones */}
         <IconButton sx={{ mr: 1, color: theme.palette.text.disabled }}>

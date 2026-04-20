@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { permissionsService } from '@/services/permissions.service';
+import { usePermissionsWebSocket } from '@/hooks/usePermissionsWebSocket';
 import { Menu, AccionType } from '@/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,7 +63,7 @@ export function usePermission(menuUrl: string, accion: AccionType): boolean {
 // Provider
 // ─────────────────────────────────────────────────────────────────────────────
 export function PermissionsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [menus,     setMenus]     = useState<Menu[]>([]);
   const [rol,       setRol]       = useState('');
@@ -117,6 +118,43 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   }, []);
+
+  /** Actualiza los permisos cuando llega un mensaje WebSocket */
+  const updatePermisosFromWebSocket = useCallback(
+    (permisos: any) => {
+      console.log('🔄 Actualización de permisos recibida del WebSocket:', permisos);
+      
+      // Si el WebSocket trae los permisos actualizados, usarlos directamente
+      if (permisos.menus) {
+        console.log('📨 Usando permisos del mensaje WebSocket');
+        setMenus(permisos.menus);
+        setPermIndex(buildIndex(permisos.menus));
+        if (permisos.rol) {
+          setRol(permisos.rol);
+        }
+      } else {
+        // Si no, recargar desde la API para asegurar que están actualizados
+        // Esto ejecuta el mismo endpoint que al iniciar sesión (/config/users/mis-permisos/)
+        console.log('🔄 Recargando permisos desde la API');
+        fetch();
+      }
+    },
+    [fetch],
+  );
+
+  // Conectar WebSocket para actualizaciones en tiempo real
+  usePermissionsWebSocket({
+    userId: user?.id?.toString() ?? null,
+    enabled: isAuthenticated,
+    onPermisosUpdate: updatePermisosFromWebSocket,
+    onConnect: () => {
+      console.log('✓ WebSocket de permisos listo');
+    },
+    onError: (error) => {
+      console.warn('⚠️ WebSocket de permisos desconectado, app sigue funcionando con permisos cargados:', error);
+      // No es un error crítico, la app funciona sin WebSocket
+    },
+  });
 
   // Cargar permisos automáticamente al autenticarse; limpiar al salir
   useEffect(() => {

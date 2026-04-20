@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { menusAdminService } from '@/services/config.service';
+import { formatApiError } from '@/utils/apiError';
 import { MenuAdmin } from '@/types';
 
 const EMPTY_FORM = { nombre: '', icono: '', estado: true };
@@ -66,7 +67,7 @@ export default function MenusPage() {
       else         await menusAdminService.create(payload);
       setDialogOpen(false); load();
     } catch (e: any) {
-      setFormError(e?.response?.data ? JSON.stringify(e.response.data) : 'Error al guardar.');
+      setFormError(formatApiError(e, 'Error al guardar.'));
     } finally { setSaving(false); }
   };
 

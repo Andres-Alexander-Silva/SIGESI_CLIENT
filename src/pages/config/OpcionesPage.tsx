@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { opcionesService, menusAdminService } from '@/services/config.service';
+import { formatApiError } from '@/utils/apiError';
 import { OpcionAdmin, MenuAdmin } from '@/types';
 
 const EMPTY_FORM = { menu: '' as string | number, nombre: '', url: '', estado: true };
@@ -77,7 +78,7 @@ export default function OpcionesPage() {
       else         await opcionesService.create(payload);
       setDialogOpen(false); load();
     } catch (e: any) {
-      setFormError(e?.response?.data ? JSON.stringify(e.response.data) : 'Error al guardar.');
+      setFormError(formatApiError(e, 'Error al guardar.'));
     } finally { setSaving(false); }
   };
 
