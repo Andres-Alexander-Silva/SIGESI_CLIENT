@@ -17,7 +17,6 @@ export type UserRole =
   | 'director_semillero'
   | 'lider_estudiantil'
   | 'estudiante'
-  | 'comite';
 
 export interface User {
   id: number;
@@ -90,6 +89,8 @@ export interface UserAdmin {
   id: number;
   username: string;
   email: string;
+  correo_personal: string | null;
+  is_graduated: boolean;
   first_name: string;
   last_name: string;
   cedula: string;
