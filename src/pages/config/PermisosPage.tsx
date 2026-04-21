@@ -123,8 +123,7 @@ export default function PermisosPage() {
       director_grupo:     theme.palette.secondary.main,
       director_semillero: theme.palette.secondary.light,
       lider_estudiantil:  theme.palette.warning.main,
-      estudiante:         theme.palette.info.main,
-      comite:             theme.palette.text.secondary,
+      estudiante:         theme.palette.info.main
     };
     return map[rol] ?? theme.palette.text.secondary;
   };
