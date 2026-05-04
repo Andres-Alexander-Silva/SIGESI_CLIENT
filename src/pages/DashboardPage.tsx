@@ -6,7 +6,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   // Renderizar el dashboard según el rol del usuario
-  if (user?.role === 'administrador') {
+  if (user?.roles?.includes('administrador')) {
     return <DashboardAdmin user={user} />;
   }
 
