@@ -22,6 +22,7 @@ import {
   DarkModeOutlined,
   LightModeOutlined,
   LockOutlined,
+  SwitchAccountOutlined,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -36,7 +37,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ sidebarOpen, onToggleSidebar }: TopbarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, activeRole, selectRole } = useAuth();
   const { mode, toggleMode } = useThemeMode();
   const theme = useTheme();
   const navigate = useNavigate();
@@ -215,6 +216,20 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }: TopbarProps) {
             </ListItemIcon>
             Cambiar Contraseña
           </MenuItem>
+
+          {user?.roles && user.roles.length > 1 && (
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                navigate("/select-role");
+              }}
+            >
+              <ListItemIcon>
+                <SwitchAccountOutlined fontSize="small" />
+              </ListItemIcon>
+              Cambiar Rol
+            </MenuItem>
+          )}
 
           <Divider />
 

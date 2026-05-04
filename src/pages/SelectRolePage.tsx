@@ -55,8 +55,9 @@ const ROL_META: Record<
 };
 
 export default function SelectRolePage() {
-  const { user, selectRole } = useAuth();
+  const { user, selectRole, activeRole } = useAuth();
   const navigate = useNavigate();
+  const isChangingRole = Boolean(activeRole); // true si ya hay un rol activo
 
   useEffect(() => {
     if (!user) {
@@ -100,14 +101,22 @@ export default function SelectRolePage() {
             sx={{ fontSize: 64, color: "primary.main", mb: 2 }}
           />
           <Typography variant="h4" fontWeight={700} gutterBottom>
-            ¿Con qué rol deseas ingresar?
+            {isChangingRole ? "Cambiar rol" : "¿Con qué rol deseas ingresar?"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Iniciaste sesión como{" "}
-            <strong>
-              {user.first_name} {user.last_name}
-            </strong>
-            . Selecciona el rol con el que quieres trabajar en esta sesión.
+            {isChangingRole ? (
+              <>
+                Rol actual: <strong>{activeRole}</strong>. Selecciona el nuevo rol con el que quieres continuar.
+              </>
+            ) : (
+              <>
+                Iniciaste sesión como{" "}
+                <strong>
+                  {user.first_name} {user.last_name}
+                </strong>
+                . Selecciona el rol con el que quieres trabajar en esta sesión.
+              </>
+            )}
           </Typography>
         </Box>
 
@@ -173,6 +182,19 @@ export default function SelectRolePage() {
           </Box>
         )}
 
+        {isChangingRole && (
+          <Box sx={{ textAlign: "center", mt: 2 }}>
+            <Typography
+              component="span"
+              variant="body2"
+              sx={{ color: "primary.main", cursor: "pointer", textDecoration: "underline" }}
+              onClick={() => navigate(-1)}
+            >
+              Cancelar y volver
+            </Typography>
+          </Box>
+        )}
+
         <Typography
           variant="caption"
           sx={{
@@ -182,7 +204,9 @@ export default function SelectRolePage() {
             color: "text.disabled",
           }}
         >
-          Puedes cambiar de rol cerrando sesión y volviendo a iniciar sesión.
+          {isChangingRole
+            ? "El cambio de rol se aplica de inmediato."
+            : "Podrás cambiar de rol en cualquier momento desde el menú de usuario."}
         </Typography>
       </Container>
     </Box>
