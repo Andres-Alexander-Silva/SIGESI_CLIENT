@@ -39,136 +39,146 @@ import {
  */
 const MAP: Record<string, ReactElement> = {
   // ── Generales ────────────────────────────────────────────────────────────
-  dashboard:             <DashboardOutlined />,
-  tachometer:            <DashboardOutlined />,   // fa-tachometer-alt
-  tachometeralt:         <DashboardOutlined />,
-  gauge:                 <DashboardOutlined />,   // fa-gauge
-  gaugehigh:             <DashboardOutlined />,
-  speedometer:           <DashboardOutlined />,
-  home:                  <HomeOutlined />,
-  house:                 <HomeOutlined />,
-  menu:                  <ListAltOutlined />,
-  list:                  <ListAltOutlined />,
-  listalt:               <ListAltOutlined />,
+  dashboard: <DashboardOutlined />,
+  tachometer: <DashboardOutlined />, // fa-tachometer-alt
+  tachometeralt: <DashboardOutlined />,
+  gauge: <DashboardOutlined />, // fa-gauge
+  gaugehigh: <DashboardOutlined />,
+  speedometer: <DashboardOutlined />,
+  home: <HomeOutlined />,
+  house: <HomeOutlined />,
+  menu: <ListAltOutlined />,
+  list: <ListAltOutlined />,
+  listalt: <ListAltOutlined />,
 
   // ── Semilleros / Investigación ───────────────────────────────────────────
-  semilleros:            <GroupsOutlined />,
-  grupos:                <GroupsOutlined />,
-  investigacion:         <ScienceOutlined />,
-  science:               <ScienceOutlined />,
-  laboratorio:           <ScienceOutlined />,
-  flask:                 <ScienceOutlined />,      // fa-flask
-  microscope:            <ScienceOutlined />,
-  atom:                  <ScienceOutlined />,
+  semilleros: <GroupsOutlined />,
+  grupos: <GroupsOutlined />,
+  investigacion: <ScienceOutlined />,
+  science: <ScienceOutlined />,
+  laboratorio: <ScienceOutlined />,
+  flask: <ScienceOutlined />, // fa-flask
+  microscope: <ScienceOutlined />,
+  atom: <ScienceOutlined />,
 
   // ── Proyectos ─────────────────────────────────────────────────────────────
-  proyectos:             <AssignmentOutlined />,
-  proyecto:              <AssignmentOutlined />,
-  tareas:                <AssignmentOutlined />,
-  assignment:            <AssignmentOutlined />,
-  tasks:                 <AssignmentOutlined />,   // fa-tasks
-  clipboard:             <AssignmentOutlined />,
-  clipboardlist:         <AssignmentOutlined />,
+  proyectos: <AssignmentOutlined />,
+  proyecto: <AssignmentOutlined />,
+  tareas: <AssignmentOutlined />,
+  assignment: <AssignmentOutlined />,
+  tasks: <AssignmentOutlined />, // fa-tasks
+  clipboard: <AssignmentOutlined />,
+  clipboardlist: <AssignmentOutlined />,
 
   // ── Producción académica ─────────────────────────────────────────────────
-  produccion:            <ArticleOutlined />,
-  articulos:             <ArticleOutlined />,
-  publicaciones:         <ArticleOutlined />,
-  libros:                <LibraryBooksOutlined />,
-  biblioteca:            <LibraryBooksOutlined />,
-  book:                  <LibraryBooksOutlined />,  // fa-book
-  books:                 <LibraryBooksOutlined />,
-  file:                  <ArticleOutlined />,       // fa-file-alt
-  filealt:               <ArticleOutlined />,
-  filelines:             <ArticleOutlined />,
+  produccion: <ArticleOutlined />,
+  articulos: <ArticleOutlined />,
+  publicaciones: <ArticleOutlined />,
+  libros: <LibraryBooksOutlined />,
+  biblioteca: <LibraryBooksOutlined />,
+  book: <LibraryBooksOutlined />, // fa-book
+  books: <LibraryBooksOutlined />,
+  file: <ArticleOutlined />, // fa-file-alt
+  filealt: <ArticleOutlined />,
+  filelines: <ArticleOutlined />,
 
   // ── Convocatorias / Eventos ───────────────────────────────────────────────
-  convocatorias:         <CampaignOutlined />,
-  convocatoria:          <CampaignOutlined />,
-  bullhorn:              <CampaignOutlined />,     // fa-bullhorn
-  megaphone:             <CampaignOutlined />,
-  eventos:               <EventOutlined />,
-  event:                 <EventOutlined />,
-  calendar:              <EventOutlined />,        // fa-calendar / fa-calendar-alt
-  calendaralt:           <EventOutlined />,
-  calendardays:          <EventOutlined />,
-  logros:                <EmojiEventsOutlined />,
-  trophy:                <EmojiEventsOutlined />,  // fa-trophy
-  award:                 <EmojiEventsOutlined />,
-  medal:                 <EmojiEventsOutlined />,
+  convocatorias: <CampaignOutlined />,
+  convocatoria: <CampaignOutlined />,
+  bullhorn: <CampaignOutlined />, // fa-bullhorn
+  megaphone: <CampaignOutlined />,
+  eventos: <EventOutlined />,
+  event: <EventOutlined />,
+  calendar: <EventOutlined />, // fa-calendar / fa-calendar-alt
+  calendaralt: <EventOutlined />,
+  calendardays: <EventOutlined />,
+  logros: <EmojiEventsOutlined />,
+  trophy: <EmojiEventsOutlined />, // fa-trophy
+  award: <EmojiEventsOutlined />,
+  medal: <EmojiEventsOutlined />,
 
   // ── Reportes / Estadísticas ───────────────────────────────────────────────
-  reportes:              <BarChartOutlined />,
-  reporte:               <BarChartOutlined />,
-  estadisticas:          <AnalyticsOutlined />,
-  analytics:             <AnalyticsOutlined />,
-  graficas:              <BarChartOutlined />,
-  chartbar:              <BarChartOutlined />,     // fa-chart-bar
-  chartline:             <AnalyticsOutlined />,    // fa-chart-line
-  chartpie:              <AnalyticsOutlined />,    // fa-chart-pie
-  barchart:              <BarChartOutlined />,
-  piechart:              <AnalyticsOutlined />,
+  reportes: <BarChartOutlined />,
+  reporte: <BarChartOutlined />,
+  estadisticas: <AnalyticsOutlined />,
+  analytics: <AnalyticsOutlined />,
+  graficas: <BarChartOutlined />,
+  chartbar: <BarChartOutlined />, // fa-chart-bar
+  chartline: <AnalyticsOutlined />, // fa-chart-line
+  chartpie: <AnalyticsOutlined />, // fa-chart-pie
+  barchart: <BarChartOutlined />,
+  piechart: <AnalyticsOutlined />,
 
   // ── Usuarios / Personas ───────────────────────────────────────────────────
-  usuarios:              <PeopleOutlined />,
-  people:                <PeopleOutlined />,
-  users:                 <PeopleOutlined />,       // fa-users
-  user:                  <PeopleOutlined />,        // fa-user
-  usergroup:             <PeopleOutlined />,
-  useradd:               <PeopleOutlined />,
-  estudiantes:           <SchoolOutlined />,
-  docentes:              <SchoolOutlined />,
-  school:                <SchoolOutlined />,
-  graduationcap:         <SchoolOutlined />,       // fa-graduation-cap
-  usergraduate:          <SchoolOutlined />,
-  cursos:                <MenuBookOutlined />,
+  usuarios: <PeopleOutlined />,
+  people: <PeopleOutlined />,
+  users: <PeopleOutlined />, // fa-users
+  user: <PeopleOutlined />, // fa-user
+  usergroup: <PeopleOutlined />,
+  useradd: <PeopleOutlined />,
+  estudiantes: <SchoolOutlined />,
+  docentes: <SchoolOutlined />,
+  school: <SchoolOutlined />,
+  graduationcap: <SchoolOutlined />, // fa-graduation-cap
+  usergraduate: <SchoolOutlined />,
+  cursos: <MenuBookOutlined />,
 
   // ── Configuración / Admin ─────────────────────────────────────────────────
-  configuracion:         <SettingsOutlined />,
-  settings:              <SettingsOutlined />,
-  cog:                   <SettingsOutlined />,     // fa-cog
-  cogs:                  <SettingsOutlined />,     // fa-cogs
-  gear:                  <SettingsOutlined />,     // fa-gear
-  gears:                 <SettingsOutlined />,
-  sliders:               <SettingsOutlined />,     // fa-sliders-h
-  slidershorizontal:     <SettingsOutlined />,
-  slidersv:              <SettingsOutlined />,
-  administracion:        <AdminPanelSettingsOutlined />,
-  admin:                 <AdminPanelSettingsOutlined />,
-  permisos:              <SecurityOutlined />,
-  shield:                <SecurityOutlined />,     // fa-shield-alt
-  shieldalt:             <SecurityOutlined />,
-  shieldhalved:          <SecurityOutlined />,
-  roles:                 <ManageAccountsOutlined />,
-  usercog:               <ManageAccountsOutlined />, // fa-user-cog
-  usershield:            <ManageAccountsOutlined />,
-  seguridad:             <LockOutlined />,
-  lock:                  <LockOutlined />,         // fa-lock
-  key:                   <LockOutlined />,         // fa-key
+  configuracion: <SettingsOutlined />,
+  settings: <SettingsOutlined />,
+  cog: <SettingsOutlined />, // fa-cog
+  cogs: <SettingsOutlined />, // fa-cogs
+  gear: <SettingsOutlined />, // fa-gear
+  gears: <SettingsOutlined />,
+  sliders: <SettingsOutlined />, // fa-sliders-h
+  slidershorizontal: <SettingsOutlined />,
+  slidersv: <SettingsOutlined />,
+  administracion: <AdminPanelSettingsOutlined />,
+  admin: <AdminPanelSettingsOutlined />,
+  permisos: <SecurityOutlined />,
+  shield: <SecurityOutlined />, // fa-shield-alt
+  shieldalt: <SecurityOutlined />,
+  shieldhalved: <SecurityOutlined />,
+  roles: <ManageAccountsOutlined />,
+  usercog: <ManageAccountsOutlined />, // fa-user-cog
+  usershield: <ManageAccountsOutlined />,
+  seguridad: <LockOutlined />,
+  lock: <LockOutlined />, // fa-lock
+  key: <LockOutlined />, // fa-key
 
   // ── Estructura ────────────────────────────────────────────────────────────
-  facultades:            <BusinessOutlined />,
-  programas:             <AccountTreeOutlined />,
-  estructura:            <AccountTreeOutlined />,
-  sitemap:               <AccountTreeOutlined />,  // fa-sitemap
-  building:              <BusinessOutlined />,     // fa-building
-  university:            <BusinessOutlined />,     // fa-university
-  carpeta:               <FolderOutlined />,
-  folder:                <FolderOutlined />,
-  folderopen:            <FolderOutlined />,
+  facultades: <BusinessOutlined />,
+  programas: <AccountTreeOutlined />,
+  estructura: <AccountTreeOutlined />,
+  sitemap: <AccountTreeOutlined />, // fa-sitemap
+  building: <BusinessOutlined />, // fa-building
+  university: <BusinessOutlined />, // fa-university
+  carpeta: <FolderOutlined />,
+  folder: <FolderOutlined />,
+  folderopen: <FolderOutlined />,
 
   // ── Notificaciones ────────────────────────────────────────────────────────
-  notificaciones:        <NotificationsOutlined />,
-  notifications:         <NotificationsOutlined />,
-  bell:                  <NotificationsOutlined />, // fa-bell
+  notificaciones: <NotificationsOutlined />,
+  notifications: <NotificationsOutlined />,
+  bell: <NotificationsOutlined />, // fa-bell
 
   // ── Otros ─────────────────────────────────────────────────────────────────
-  ayuda:                 <HelpOutlined />,
-  help:                  <HelpOutlined />,
-  question:              <HelpOutlined />,          // fa-question-circle
-  questioncircle:        <HelpOutlined />,
-  info:                  <HelpOutlined />,          // fa-info-circle
-  infocircle:            <HelpOutlined />,
+  ayuda: <HelpOutlined />,
+  help: <HelpOutlined />,
+  question: <HelpOutlined />, // fa-question-circle
+  questioncircle: <HelpOutlined />,
+  info: <HelpOutlined />, // fa-info-circle
+  infocircle: <HelpOutlined />,
+
+  inscripcionsemilleros: <SchoolOutlined />,
+  inscripcion: <AssignmentOutlined />,
+  registro: <AssignmentOutlined />,
+  filesignature: <AssignmentOutlined />, // fa-file-signature
+
+  gestionarmiembros: <ManageAccountsOutlined />,
+  miembros: <PeopleOutlined />,
+  usersgear: <ManageAccountsOutlined />, // fa-users-gear
+  usergear: <ManageAccountsOutlined />, // fa-user-gear
 };
 
 /**

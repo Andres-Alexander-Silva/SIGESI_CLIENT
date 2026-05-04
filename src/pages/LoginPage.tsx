@@ -1,5 +1,5 @@
-import { useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, FormEvent } from "react";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -10,43 +10,38 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
-} from '@mui/material';
+  Link,
+} from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
   Email,
   Lock,
   ScienceOutlined,
-} from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
-import { useAuth } from '@/context/AuthContext';
-import { PALETTE } from '@/styles/theme';
+} from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { useAuth } from "@/context/AuthContext";
+import { PALETTE } from "@/styles/theme";
 
-const DOMAIN_ERROR = 'El correo debe pertenecer al dominio @ufps.edu.co';
+const DOMAIN_ERROR = "El correo debe pertenecer al dominio @ufps.edu.co";
 
 export default function LoginPage() {
-  const [email, setEmail]               = useState('');
-  const [password, setPassword]         = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError]               = useState('');
-  const [loading, setLoading]           = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
-  const navigate  = useNavigate();
-  const theme     = useTheme();
+  const navigate = useNavigate();
+  const theme = useTheme();
 
   const isUFPSEmail = (value: string) =>
-    value.trim().toLowerCase().endsWith('@ufps.edu.co');
-
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    // Limpiar error de dominio si el usuario está corrigiendo
-    if (error === DOMAIN_ERROR) setError('');
-  };
+    value.trim().toLowerCase().endsWith("@ufps.edu.co");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!isUFPSEmail(email)) {
       setError(DOMAIN_ERROR);
@@ -56,12 +51,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ email: email.trim(), password });
-      navigate('/dashboard');
     } catch (err: any) {
       setError(
         err.response?.data?.detail ||
-        err.response?.data?.message ||
-        'Credenciales inválidas. Verifica tu correo y contraseña.'
+          err.response?.data?.message ||
+          "Credenciales inválidas. Verifica tu correo y contraseña.",
       );
     } finally {
       setLoading(false);
@@ -69,68 +63,28 @@ export default function LoginPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex' }}>
-      {/* ── Panel izquierdo — Branding (fijo, es identidad de marca) ── */}
+    <Box sx={{ minHeight: "100vh", display: "flex" }}>
+      {/* Panel izquierdo - Branding */}
       <Box
         sx={{
-          display: { xs: 'none', lg: 'flex' },
-          width: '50%',
-          position: 'relative',
-          overflow: 'hidden',
+          display: { xs: "none", lg: "flex" },
+          width: "50%",
+          position: "relative",
+          overflow: "hidden",
           background: `linear-gradient(135deg, ${PALETTE.primary.main} 0%, ${PALETTE.primary.dark} 50%, ${PALETTE.primary.darker} 100%)`,
         }}
       >
-        {/* Patrón decorativo */}
         <Box
           sx={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.1,
-            backgroundImage: `
-              radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
-              radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px',
-          }}
-        />
-
-        {/* Formas geométricas */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -80,
-            right: -80,
-            width: 320,
-            height: 320,
-            borderRadius: '50%',
-            opacity: 0.1,
-            background: PALETTE.warning.main,
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -128,
-            left: -64,
-            width: 384,
-            height: 384,
-            borderRadius: '50%',
-            opacity: 0.1,
-            background: PALETTE.secondary.main,
-          }}
-        />
-
-        <Box
-          sx={{
-            position: 'relative',
+            position: "relative",
             zIndex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
             px: 6,
-            color: '#fff',
+            color: "#fff",
           }}
         >
           <Box
@@ -138,64 +92,74 @@ export default function LoginPage() {
               mb: 4,
               p: 3,
               borderRadius: 4,
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(4px)',
+              background: "rgba(255,255,255,0.1)",
+              backdropFilter: "blur(4px)",
             }}
           >
-            <ScienceOutlined sx={{ fontSize: 64, color: '#fff' }} />
+            <ScienceOutlined sx={{ fontSize: 64, color: "#fff" }} />
           </Box>
           <Typography
             variant="h3"
-            sx={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 700, textAlign: 'center', mb: 2 }}
+            sx={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontWeight: 700,
+              textAlign: "center",
+              mb: 2,
+            }}
           >
             SIGESI
           </Typography>
           <Typography
             variant="h6"
-            sx={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 400, textAlign: 'center', opacity: 0.9 }}
+            sx={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontWeight: 400,
+              textAlign: "center",
+              opacity: 0.9,
+            }}
           >
             Sistema de Gestión de Semilleros
           </Typography>
           <Typography
             variant="h6"
-            sx={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 400, textAlign: 'center', opacity: 0.9 }}
+            sx={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontWeight: 400,
+              textAlign: "center",
+              opacity: 0.9,
+            }}
           >
             de Investigación
           </Typography>
 
-          <Box sx={{ mt: 6, display: 'flex', alignItems: 'center', gap: 1.5, opacity: 0.7 }}>
-            <Box sx={{ width: 32, height: 4, borderRadius: 2, bgcolor: '#fff' }} />
-            <Box sx={{ width: 32, height: 4, borderRadius: 2, bgcolor: PALETTE.warning.main }} />
-            <Box sx={{ width: 32, height: 4, borderRadius: 2, bgcolor: PALETTE.secondary.main }} />
-          </Box>
-
           <Typography
             variant="body2"
-            sx={{ mt: 4, textAlign: 'center', opacity: 0.6, maxWidth: 320 }}
+            sx={{ mt: 6, textAlign: "center", opacity: 0.6, maxWidth: 320 }}
           >
-            Universidad Francisco de Paula Santander
+            Universidad Francisco de Paula Santander ©{" "}
+            {new Date().getFullYear()}
           </Typography>
         </Box>
       </Box>
 
-      {/* ── Panel derecho — Formulario (responde al tema) ── */}
+      {/* Panel derecho - Formulario */}
       <Box
         sx={{
-          width: { xs: '100%', lg: '50%' },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          width: { xs: "100%", lg: "50%" },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           p: 4,
-          bgcolor: 'background.default',
+          bgcolor: "background.default",
         }}
       >
         <Paper
           elevation={0}
           sx={{
-            width: '100%',
+            width: "100%",
             maxWidth: 448,
             p: { xs: 4, lg: 5 },
-            bgcolor: 'background.paper',
+            bgcolor: "background.paper",
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: 3,
           }}
@@ -203,9 +167,9 @@ export default function LoginPage() {
           {/* Logo móvil */}
           <Box
             sx={{
-              display: { xs: 'flex', lg: 'none' },
-              flexDirection: 'column',
-              alignItems: 'center',
+              display: { xs: "flex", lg: "none" },
+              flexDirection: "column",
+              alignItems: "center",
               mb: 4,
             }}
           >
@@ -217,7 +181,7 @@ export default function LoginPage() {
                 background: `linear-gradient(135deg, ${PALETTE.primary.main}, ${PALETTE.primary.dark})`,
               }}
             >
-              <ScienceOutlined sx={{ fontSize: 36, color: '#fff' }} />
+              <ScienceOutlined sx={{ fontSize: 36, color: "#fff" }} />
             </Box>
             <Typography
               variant="h5"
@@ -242,7 +206,10 @@ export default function LoginPage() {
           >
             Bienvenido
           </Typography>
-          <Typography variant="body1" sx={{ color: theme.palette.text.disabled, mb: 4 }}>
+          <Typography
+            variant="body1"
+            sx={{ color: theme.palette.text.disabled, mb: 4 }}
+          >
             Inicia sesión para acceder a la plataforma
           </Typography>
 
@@ -258,7 +225,7 @@ export default function LoginPage() {
               label="Correo electrónico"
               type="email"
               value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="usuario@ufps.edu.co"
               helperText="Usa tu correo institucional @ufps.edu.co"
@@ -267,7 +234,12 @@ export default function LoginPage() {
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Email sx={{ color: theme.palette.text.disabled, fontSize: 20 }} />
+                      <Email
+                        sx={{
+                          color: theme.palette.text.disabled,
+                          fontSize: 20,
+                        }}
+                      />
                     </InputAdornment>
                   ),
                 },
@@ -277,7 +249,7 @@ export default function LoginPage() {
             <TextField
               fullWidth
               label="Contraseña"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -286,7 +258,12 @@ export default function LoginPage() {
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Lock sx={{ color: theme.palette.text.disabled, fontSize: 20 }} />
+                      <Lock
+                        sx={{
+                          color: theme.palette.text.disabled,
+                          fontSize: 20,
+                        }}
+                      />
                     </InputAdornment>
                   ),
                   endAdornment: (
@@ -316,28 +293,44 @@ export default function LoginPage() {
               disabled={loading}
               sx={{
                 py: 1.5,
-                fontSize: '1rem',
+                fontSize: "1rem",
                 fontWeight: 600,
                 background: `linear-gradient(135deg, ${PALETTE.primary.main} 0%, ${PALETTE.primary.dark} 100%)`,
-                '&:hover': {
+                "&:hover": {
                   background: `linear-gradient(135deg, ${PALETTE.primary.dark} 0%, ${PALETTE.primary.darker} 100%)`,
                 },
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Iniciar Sesión'}
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Iniciar Sesión"
+              )}
             </Button>
           </form>
+
+          <Box sx={{ mt: 3, textAlign: "center" }}>
+            <Link
+              component={RouterLink}
+              to="/recuperacion"
+              underline="hover"
+              sx={{ color: theme.palette.primary.main, fontSize: "0.9rem" }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </Box>
 
           <Typography
             variant="body2"
             sx={{
-              textAlign: 'center',
-              mt: 4,
+              textAlign: "center",
+              mt: 5,
               color: theme.palette.text.disabled,
-              fontSize: '0.8rem',
+              fontSize: "0.8rem",
             }}
           >
-            Universidad Francisco de Paula Santander © {new Date().getFullYear()}
+            Universidad Francisco de Paula Santander ©{" "}
+            {new Date().getFullYear()}
           </Typography>
         </Paper>
       </Box>

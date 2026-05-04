@@ -23,7 +23,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  roles: UserRole[];
   is_active: boolean;
 }
 
@@ -32,6 +32,12 @@ export interface AuthState {
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+export interface ChangePasswordData {
+  password_actual: string;
+  password_nuevo: string;
+  password_confirmacion: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,7 +101,7 @@ export interface UserAdmin {
   last_name: string;
   cedula: string;
   telefono?: string;
-  rol: UserRole;
+  roles: UserRole[];
   codigo_estudiantil?: string;
   programa_academico?: number | null;
   is_active: boolean;

@@ -1,69 +1,127 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
-import { Typography, Box } from '@mui/material';
-import MainLayout from '@/components/layout/MainLayout';
-import ProtectedRoute from './ProtectedRoute';
-import LoginPage    from '@/pages/LoginPage';
-import DashboardPage from '@/pages/DashboardPage';
-import UsersPage    from '@/pages/config/UsersPage';
-import MenusPage    from '@/pages/config/MenusPage';
-import OpcionesPage from '@/pages/config/OpcionesPage';
-import PermisosPage from '@/pages/config/PermisosPage';
+// src/routes/index.tsx
+import { createBrowserRouter, Navigate, useNavigate } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
+import { PermissionsProvider } from "@/context/PermissionsContext";
+import { Outlet } from "react-router-dom";
+import { ReactNode } from "react";
+
+import MainLayout from "@/components/layout/MainLayout";
+import ProtectedRoute from "./ProtectedRoute";
+import LoginPage from "@/pages/LoginPage";
+import PasswordRecoveryPage from "@/pages/PasswordRecoveryPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import DashboardPage from "@/pages/DashboardPage";
+import UsersPage from "@/pages/config/UsersPage";
+import MenusPage from "@/pages/config/MenusPage";
+import OpcionesPage from "@/pages/config/OpcionesPage";
+import PermisosPage from "@/pages/config/PermisosPage";
+import SemillerosPage from "@/pages/core/SemillerosPage";
+import ProyectosPage from "@/pages/core/ProyectosPage";
+import SelectRolePage from "@/pages/SelectRolePage";
+import { Box, Typography } from "@mui/material";
+import LineasPage from "@/pages/core/LineasPage";
+import GruposPage from "@/pages/core/GruposPage";
+import InscripcionesPage from "@/pages/core/InscripcionPage";
+import MiembrosPage from "@/pages/core/MiembrosPage";
+
+// AuthProviderWrapper: monta el AuthProvider dentro del árbol del Router
+// para que useNavigate() esté disponible. Envuelve TODAS las rutas.
+function AuthProviderWrapper({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  return <AuthProvider navigate={navigate}>{children}</AuthProvider>;
+}
 
 const router = createBrowserRouter([
-  // ── Ruta pública ──────────────────────────────────────────────────────────
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-
-  // ── Rutas protegidas ──────────────────────────────────────────────────────
-  {
-    path: '/',
-    element: <ProtectedRoute />,
+    // Raíz: AuthProvider cubre todo el árbol (públicas + protegidas)
+    path: "/",
+    element: (
+      <AuthProviderWrapper>
+        <Outlet />
+      </AuthProviderWrapper>
+    ),
     children: [
+      // ── Rutas públicas ──────────────────────────────────────────
       {
-        element: <MainLayout />,
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "recuperacion",
+        element: <PasswordRecoveryPage />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPasswordPage />,
+      },
+
+      // ── Rutas protegidas ────────────────────────────────────────
+      {
+        path: "/",
+        element: (
+          <PermissionsProvider>
+            <ProtectedRoute />
+          </PermissionsProvider>
+        ),
         children: [
-          { index: true,            element: <Navigate to="/dashboard" replace /> },
-          { path: 'dashboard',      element: <DashboardPage /> },
+          // Selección de rol: autenticado pero SIN sidebar/layout
+          { path: "select-role", element: <SelectRolePage /> },
 
-          // Módulos principales (placeholder hasta implementar)
-          { path: 'semilleros',    element: <PlaceholderPage title="Semilleros" /> },
-          { path: 'grupos',        element: <PlaceholderPage title="Grupos de Investigación" /> },
-          { path: 'proyectos',     element: <PlaceholderPage title="Proyectos" /> },
-          { path: 'produccion',    element: <PlaceholderPage title="Producción Académica" /> },
-          { path: 'convocatorias', element: <PlaceholderPage title="Convocatorias" /> },
-          { path: 'reportes',      element: <PlaceholderPage title="Reportes" /> },
+          {
+            element: <MainLayout />,
+            children: [
+              { index: true, element: <Navigate to="/dashboard" replace /> },
+              { path: "dashboard", element: <DashboardPage /> },
 
-          // Configuración
-          { path: 'configuracion/usuarios',    element: <UsersPage /> },
-          { path: 'configuracion/menus',       element: <MenusPage /> },
-          { path: 'configuracion/opciones',    element: <OpcionesPage /> },
-          { path: 'configuracion/permisos',    element: <PermisosPage /> },
+              // Módulos principales
+              { path: "semilleros", element: <SemillerosPage /> },
+              { path: "proyectos", element: <ProyectosPage /> },
+              {
+                path: "grupos",
+                element: <GruposPage />,
+              },
+              {
+                path: "lineas_investigacion",
+                element: <LineasPage />,
+              },
+              {
+                path: "inscripcion",
+                element: <InscripcionesPage />,
+              },
+              {
+                path: "gestionar_miembros",
+                element: <MiembrosPage />,
+              },
 
-          // Cualquier ruta desconocida dentro de la app → dashboard
-          { path: '*', element: <Navigate to="/dashboard" replace /> },
+              // Configuración
+              { path: "configuracion/usuarios", element: <UsersPage /> },
+              { path: "configuracion/menus", element: <MenusPage /> },
+              { path: "configuracion/opciones", element: <OpcionesPage /> },
+              { path: "configuracion/permisos", element: <PermisosPage /> },
+
+              // Fallback interno
+              { path: "*", element: <Navigate to="/dashboard" replace /> },
+            ],
+          },
         ],
       },
     ],
   },
 
-  // ── Fallback para rutas fuera del layout (ej: /login mal escrito) ─────────
+  // Fallback general
   {
-    path: '*',
+    path: "*",
     element: <Navigate to="/login" replace />,
   },
 ]);
 
 function PlaceholderPage({ title }: { title: string }) {
-  const theme = useTheme();
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10 }}>
-      <Typography variant="h4" sx={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 700, color: theme.palette.text.primary, mb: 1 }}>
+    <Box sx={{ py: 10, textAlign: "center" }}>
+      <Typography variant="h4" fontWeight={700} gutterBottom>
         {title}
       </Typography>
-      <Typography variant="body1" sx={{ color: theme.palette.text.disabled }}>
+      <Typography color="text.secondary">
         Este módulo estará disponible próximamente.
       </Typography>
     </Box>

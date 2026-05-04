@@ -1,3 +1,4 @@
+// src/pages/config/UsersPage.tsx
 import { useState, useEffect, useCallback } from "react";
 import {
   Box,
@@ -17,10 +18,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Switch,
   FormControlLabel,
   CircularProgress,
@@ -28,6 +25,9 @@ import {
   Tooltip,
   InputAdornment,
   TablePagination,
+  Checkbox,
+  FormGroup,
+  FormControl,
 } from "@mui/material";
 import {
   AddOutlined,
@@ -40,7 +40,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { usersService } from "@/services/config.service";
 import { UserAdmin, UserRole } from "@/types";
-import { FaUser, FaUserGraduate } from "react-icons/fa";
 
 const ROLES: { value: UserRole; label: string }[] = [
   { value: "administrador", label: "Administrador" },
@@ -60,7 +59,7 @@ const EMPTY_FORM = {
   cedula: "",
   codigo_estudiantil: "",
   telefono: "",
-  rol: "estudiante" as UserRole,
+  roles: [] as UserRole[],
   is_active: true,
   is_graduated: false,
 };
@@ -101,31 +100,23 @@ export default function UsersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
   useEffect(() => {
     setPage(0);
   }, [search]);
 
-  const filtered = users.filter((u) =>
-    `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.cedula} ${u.rol}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
-  const paginated = filtered.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
-
   const openCreate = () => {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM });
     setFormError("");
     setDialogOpen(true);
   };
+
   const openEdit = (u: UserAdmin) => {
     setEditing(u);
     setForm({
       username: u.username,
-      email: u.email,
+      email: u.email || "",
       correo_personal: u.correo_personal ?? "",
       password: "",
       first_name: u.first_name,
@@ -133,7 +124,7 @@ export default function UsersPage() {
       cedula: u.cedula,
       codigo_estudiantil: u.codigo_estudiantil ?? "",
       telefono: u.telefono ?? "",
-      rol: u.rol,
+      roles: Array.isArray(u.roles) ? (u.roles as UserRole[]) : [],
       is_active: u.is_active,
       is_graduated: u.is_graduated,
     });
@@ -141,31 +132,54 @@ export default function UsersPage() {
     setDialogOpen(true);
   };
 
+  const handleRoleChange = (role: UserRole) => {
+    setForm((prev) => {
+      const current = prev.roles || [];
+      if (current.includes(role)) {
+        return { ...prev, roles: current.filter((r) => r !== role) };
+      } else {
+        return { ...prev, roles: [...current, role] };
+      }
+    });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setFormError("");
+
+    if (form.roles.length === 0) {
+      setFormError("Debe seleccionar al menos un rol.");
+      setSaving(false);
+      return;
+    }
+
     try {
+      const payload: any = {
+        ...form,
+        roles: form.roles,
+      };
+
+      if (!editing) {
+        payload.password = form.password;
+      } else {
+        delete payload.password;
+      }
+
       if (editing) {
-        const payload: Partial<UserAdmin> = { ...form };
         await usersService.update(editing.id, payload);
       } else {
-        await usersService.create({ ...form, password: form.password });
+        await usersService.create(payload);
       }
+
       setDialogOpen(false);
       load();
     } catch (e: any) {
-      let msg = "Error al guardar.";
-      const data = e?.response?.data;
-      if (data && typeof data === "object") {
-        // Si es un objeto tipo { campo: ["mensaje"] }
-        msg = Object.entries(data)
-          .map(([field, errors]) =>
-            Array.isArray(errors) ? errors.join(" ") : String(errors),
-          )
-          .join(" ");
-      } else if (typeof data === "string") {
-        msg = data;
-      }
+      const msg =
+        e.response?.data?.detail ||
+        Object.values(e.response?.data || {})
+          .flat()
+          .join(" ") ||
+        "Error al guardar el usuario.";
       setFormError(msg);
     } finally {
       setSaving(false);
@@ -186,8 +200,19 @@ export default function UsersPage() {
     }
   };
 
-  const rolColor = (rol: UserRole) => {
-    const map: Record<UserRole, string> = {
+  const filtered = users.filter((u) =>
+    `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.cedula} ${u.roles?.join(" ") || ""}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+
+  const paginated = filtered.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
+  const rolColor = (rol: string) => {
+    const map: Record<string, string> = {
       administrador: theme.palette.primary.main,
       director_grupo: theme.palette.secondary.main,
       director_semillero: theme.palette.secondary.light,
@@ -217,11 +242,7 @@ export default function UsersPage() {
           <Box>
             <Typography
               variant="h5"
-              sx={{
-                fontFamily: '"DM Sans", sans-serif',
-                fontWeight: 700,
-                color: theme.palette.text.primary,
-              }}
+              sx={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 700 }}
             >
               Usuarios
             </Typography>
@@ -256,7 +277,6 @@ export default function UsersPage() {
         </Alert>
       )}
 
-      {/* Search */}
       <TextField
         size="small"
         placeholder="Buscar por nombre, email o cédula…"
@@ -274,7 +294,6 @@ export default function UsersPage() {
         sx={{ mb: 2, width: { xs: "100%", sm: 340 } }}
       />
 
-      {/* Table */}
       <Paper variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
         <TableContainer>
           <Table size="small">
@@ -289,9 +308,9 @@ export default function UsersPage() {
                 {[
                   "Nombre",
                   "Correos",
-                  "Codigo Estudiante",
-                  "Cedula",
-                  "Rol",
+                  "Código Estudiantil",
+                  "Cédula",
+                  "Roles",
                   "Estado",
                   "Graduado",
                   "Acciones",
@@ -320,7 +339,7 @@ export default function UsersPage() {
               ) : paginated.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={8}
                     align="center"
                     sx={{ py: 4, color: theme.palette.text.disabled }}
                   >
@@ -342,79 +361,54 @@ export default function UsersPage() {
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.82rem" }} align="center">
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        <FaUserGraduate fontSize={11} /> {u.email}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: theme.palette.text.secondary }}
-                      >
-                        <FaUser fontSize={11} /> {u.correo_personal}
-                      </Typography>
+                      {u.email}
+                      {u.correo_personal && <br />}
+                      <small>{u.correo_personal}</small>
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.82rem" }} align="center">
-                      {u.codigo_estudiantil}
+                      {u.codigo_estudiantil || "—"}
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.82rem" }} align="center">
                       {u.cedula}
                     </TableCell>
                     <TableCell align="center">
-                      <Chip
-                        label={
-                          ROLES.find((r) => r.value === u.rol)?.label ?? u.rol
-                        }
-                        size="small"
+                      <Box
                         sx={{
-                          height: 22,
-                          fontSize: "0.7rem",
-                          fontWeight: 600,
-                          color: rolColor(u.rol),
-                          bgcolor: `${rolColor(u.rol)}22`,
+                          display: "flex",
+                          gap: 0.5,
+                          flexWrap: "wrap",
+                          justifyContent: "center",
                         }}
-                      />
+                      >
+                        {(u.roles || []).map((rol: string) => (
+                          <Chip
+                            key={rol}
+                            label={
+                              ROLES.find((r) => r.value === rol)?.label || rol
+                            }
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: "0.68rem",
+                              color: rolColor(rol),
+                              bgcolor: `${rolColor(rol)}22`,
+                            }}
+                          />
+                        ))}
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
                       <Chip
                         label={u.is_active ? "Activo" : "Inactivo"}
                         size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: "0.7rem",
-                          fontWeight: 600,
-                          color: u.is_active
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
-                          bgcolor: u.is_active
-                            ? `${theme.palette.success.main}22`
-                            : `${theme.palette.error.main}22`,
-                          border: `1px solid ${
-                            u.is_active
-                              ? theme.palette.success.main
-                              : theme.palette.error.main
-                          }`,
-                        }}
+                        color={u.is_active ? "success" : "error"}
                       />
                     </TableCell>
                     <TableCell align="center">
                       <Chip
                         label={u.is_graduated ? "Sí" : "No"}
                         size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: "0.7rem",
-                          fontWeight: 600,
-                          color: u.is_graduated
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
-                          bgcolor: u.is_graduated
-                            ? `${theme.palette.success.main}22` // verde suave
-                            : `${theme.palette.error.main}22`, // rojo suave
-                          border: `1px solid ${
-                            u.is_graduated
-                              ? theme.palette.success.main
-                              : theme.palette.error.main
-                          }`,
-                        }}
+                        color={u.is_graduated ? "success" : "default"}
                       />
                     </TableCell>
                     <TableCell align="center">
@@ -439,6 +433,7 @@ export default function UsersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
         <TablePagination
           component="div"
           count={filtered.length}
@@ -451,17 +446,14 @@ export default function UsersPage() {
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           labelRowsPerPage="Filas:"
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}–${to} de ${count}`
-          }
         />
       </Paper>
 
-      {/* Create/Edit Dialog */}
+      {/* ==================== DIÁLOGO CREAR/EDITAR ==================== */}
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
@@ -476,7 +468,15 @@ export default function UsersPage() {
               {formError}
             </Alert>
           )}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 2,
+              pt: 1,
+            }}
+          >
             <TextField
               label="Nombre"
               value={form.first_name}
@@ -518,7 +518,7 @@ export default function UsersPage() {
               size="small"
             />
             <TextField
-              label="Codigo Estudiantil"
+              label="Código Estudiantil"
               value={form.codigo_estudiantil}
               onChange={(e) =>
                 setForm((f) => ({ ...f, codigo_estudiantil: e.target.value }))
@@ -526,7 +526,7 @@ export default function UsersPage() {
               size="small"
             />
             <TextField
-              label="Correo Institucional (@ufps.edu.co)"
+              label="Correo Institucional"
               value={form.email}
               onChange={(e) =>
                 setForm((f) => ({ ...f, email: e.target.value }))
@@ -534,6 +534,7 @@ export default function UsersPage() {
               size="small"
               sx={{ gridColumn: "1 / -1" }}
             />
+
             {!editing && (
               <TextField
                 label="Contraseña"
@@ -544,8 +545,10 @@ export default function UsersPage() {
                 }
                 size="small"
                 sx={{ gridColumn: "1 / -1" }}
+                helperText="Mínimo 8 caracteres"
               />
             )}
+
             <TextField
               label="Teléfono"
               value={form.telefono}
@@ -554,22 +557,31 @@ export default function UsersPage() {
               }
               size="small"
             />
-            <FormControl size="small">
-              <InputLabel>Rol</InputLabel>
-              <Select
-                label="Rol"
-                value={form.rol}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, rol: e.target.value as UserRole }))
-                }
-              >
+
+            {/* Roles Múltiples */}
+            <FormControl
+              component="fieldset"
+              sx={{ gridColumn: "1 / -1", mt: 1 }}
+            >
+              <Typography variant="subtitle2" gutterBottom>
+                Roles *
+              </Typography>
+              <FormGroup row sx={{ gap: 2 }}>
                 {ROLES.map((r) => (
-                  <MenuItem key={r.value} value={r.value}>
-                    {r.label}
-                  </MenuItem>
+                  <FormControlLabel
+                    key={r.value}
+                    control={
+                      <Checkbox
+                        checked={form.roles.includes(r.value)}
+                        onChange={() => handleRoleChange(r.value)}
+                      />
+                    }
+                    label={r.label}
+                  />
                 ))}
-              </Select>
+              </FormGroup>
             </FormControl>
+
             <FormControlLabel
               control={
                 <Switch
@@ -596,51 +608,39 @@ export default function UsersPage() {
             />
           </Box>
         </DialogContent>
+
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button
-            onClick={() => setDialogOpen(false)}
-            sx={{ textTransform: "none" }}
-          >
-            Cancelar
-          </Button>
+          <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={saving}
-            sx={{ textTransform: "none", borderRadius: 2 }}
+            disabled={saving || form.roles.length === 0}
           >
             {saving ? <CircularProgress size={18} /> : "Guardar"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* Diálogo Eliminar */}
       <Dialog
         open={deleteId !== null}
         onClose={() => setDeleteId(null)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>¿Eliminar usuario?</DialogTitle>
+        <DialogTitle>¿Eliminar usuario?</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
             Esta acción no se puede deshacer.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button
-            onClick={() => setDeleteId(null)}
-            sx={{ textTransform: "none" }}
-          >
-            Cancelar
-          </Button>
+          <Button onClick={() => setDeleteId(null)}>Cancelar</Button>
           <Button
             variant="contained"
             color="error"
             onClick={handleDelete}
             disabled={deleteLoading}
-            sx={{ textTransform: "none", borderRadius: 2 }}
           >
             {deleteLoading ? <CircularProgress size={18} /> : "Eliminar"}
           </Button>

@@ -71,8 +71,11 @@ export function buildSidebarTree(rawMenus: any[]): Menu[] {
 // Servicio
 // ─────────────────────────────────────────────────────────────────────────────
 export const permissionsService = {
-  async getMyPermissions(): Promise<UserPermissionsResponse> {
-    const { data } = await api.get("/config/users/mis-permisos/");
+  async getMyPermissions(
+    activeRole?: string,
+  ): Promise<UserPermissionsResponse> {
+    const params = activeRole ? { rol: activeRole } : {};
+    const { data } = await api.get("/config/users/mis-permisos/", { params });
 
     const rol: string = data.rol ?? "";
     const rawMenus: any[] = data.menus ?? [];
