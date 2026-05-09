@@ -30,6 +30,7 @@ import {
   LockOutlined,
   HelpOutlined,
 } from '@mui/icons-material';
+import { FaChartLine, FaTasks } from 'react-icons/fa';
 
 /**
  * Mapa de nombres de icono (devueltos por la API) a componentes MUI.
@@ -67,6 +68,7 @@ const MAP: Record<string, ReactElement> = {
   tareas: <AssignmentOutlined />,
   assignment: <AssignmentOutlined />,
   tasks: <AssignmentOutlined />, // fa-tasks
+  fatasks: <FaTasks />, // FaTasks
   clipboard: <AssignmentOutlined />,
   clipboardlist: <AssignmentOutlined />,
 
@@ -105,6 +107,7 @@ const MAP: Record<string, ReactElement> = {
   graficas: <BarChartOutlined />,
   chartbar: <BarChartOutlined />, // fa-chart-bar
   chartline: <AnalyticsOutlined />, // fa-chart-line
+  fachartline: <FaChartLine />, // FaChartLine
   chartpie: <AnalyticsOutlined />, // fa-chart-pie
   barchart: <BarChartOutlined />,
   piechart: <AnalyticsOutlined />,

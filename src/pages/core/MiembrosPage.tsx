@@ -156,17 +156,21 @@ export default function MiembrosPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const { can } = usePermissions();
-  const { user } = useAuth();
 
-  const currentRole = user?.roles?.[0] ?? "";
+  // ✅ FIX #1: Usar activeRole para determinar el rol actual correctamente
+  const { user, activeRole } = useAuth();
+  const currentRole = activeRole ?? user?.roles?.[0] ?? "";
+
   const isStudent = currentRole === "estudiante";
   const isDirector = currentRole === "director_semillero";
   const isAdmin =
     currentRole === "administrador" || currentRole === "director_grupo";
 
-  const canEdit = can("/miembros", "editar") || isDirector || isAdmin;
-  const canDelete = can("/miembros", "eliminar") || isDirector || isAdmin;
-  const canCreate = can("/miembros", "crear") || isDirector || isAdmin;
+  const canEdit = can("/gestionar_miembros", "editar") || isDirector || isAdmin;
+  const canDelete =
+    can("/gestionar_miembros", "eliminar") || isDirector || isAdmin;
+  const canCreate =
+    can("/gestionar_miembros", "crear") || isDirector || isAdmin;
 
   // ── Estado principal ─────────────────────────────────────────────────────
   const [semilleros, setSemilleros] = useState<Semillero[]>([]);
@@ -218,9 +222,17 @@ export default function MiembrosPage() {
         setSemilleros(activeSem);
         setEstudiantes(estudData);
 
-        // Si es director, preseleccionar su semillero
+        // ✅ FIX #2: Si es director, preseleccionar SU semillero (donde él es director)
         if (isDirector && activeSem.length > 0) {
-          setSelectedSemillero(activeSem[0].id);
+          const miSemillero = activeSem.find(
+            (s: Semillero) => s.director === user?.id,
+          );
+          if (miSemillero) {
+            setSelectedSemillero(miSemillero.id);
+          } else {
+            // fallback: primer semillero activo si no se encuentra coincidencia por id
+            setSelectedSemillero(activeSem[0].id);
+          }
         }
       } catch {
         setError("Error al cargar semilleros.");
@@ -229,7 +241,7 @@ export default function MiembrosPage() {
       }
     };
     init();
-  }, [isDirector]);
+  }, [isDirector, user?.id]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Cargar miembros del semillero seleccionado
@@ -338,9 +350,6 @@ export default function MiembrosPage() {
     setFormError("");
     try {
       if (editingMiembro) {
-        // Editar: solo podemos cambiar el semestre (la API no expone PUT en inscripciones)
-        // Se retira y vuelve a inscribir si el semestre cambia, o se usa PATCH si está disponible
-        // Por ahora actualizamos con PATCH a la inscripción usando el endpoint genérico
         await api.patch(`/core/inscripciones/${editingMiembro.id}/`, {
           semestre: formSemestre,
         });
@@ -474,7 +483,7 @@ export default function MiembrosPage() {
               Gestión de Miembros
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Rol actual: <strong>{user?.roles?.join(", ")}</strong>
+              Rol actual: <strong>{currentRole}</strong>
             </Typography>
           </Box>
         </Box>

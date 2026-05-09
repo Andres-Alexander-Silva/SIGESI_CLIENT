@@ -40,7 +40,7 @@ export default function PasswordRecoveryPage() {
 
     try {
       // Ajusta el endpoint según tu Swagger
-      await api.post("/auth/password-reset/", { email: email.trim() });
+      await api.post("/auth/recuperacion/", { email: email.trim() });
       setSuccess(true);
     } catch (err: any) {
       setError(

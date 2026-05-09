@@ -23,6 +23,8 @@ import LineasPage from "@/pages/core/LineasPage";
 import GruposPage from "@/pages/core/GruposPage";
 import InscripcionesPage from "@/pages/core/InscripcionPage";
 import MiembrosPage from "@/pages/core/MiembrosPage";
+import ActividadesPage from "@/pages/core/ActividadesPage";
+import AvancesPage from "@/pages/core/AvancesPage";
 
 // AuthProviderWrapper: monta el AuthProvider dentro del árbol del Router
 // para que useNavigate() esté disponible. Envuelve TODAS las rutas.
@@ -91,6 +93,15 @@ const router = createBrowserRouter([
               {
                 path: "gestionar_miembros",
                 element: <MiembrosPage />,
+              },
+
+              {
+                path: "actividades",
+                element: <ActividadesPage />,
+              },
+              {
+                path: "avances",
+                element: <AvancesPage />,
               },
 
               // Configuración
