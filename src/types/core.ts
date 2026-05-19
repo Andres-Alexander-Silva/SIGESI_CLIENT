@@ -43,6 +43,18 @@ export interface GrupoInvestigacionCreate {
 // ─────────────────────────────────────────────────────────────────────────────
 // Semilleros
 // ─────────────────────────────────────────────────────────────────────────────
+export type EstadoAval = "sin_aprobar" | "en_proceso" | "aprobado" | "rechazado";
+export type TipoDocumentoAval = "acta" | "resolucion" | "oficio" | "certificado";
+
+export interface SemilleroAval {
+  archivo_aval?: string | null;
+  tipo_documento?: TipoDocumentoAval;
+  numero_acta?: string;
+  fecha_aprobacion?: string | null;
+  estado_aval?: EstadoAval;
+  observaciones?: string;
+}
+
 export interface Semillero {
   id: number;
   nombre: string;
@@ -60,6 +72,15 @@ export interface Semillero {
   lineas_investigacion?: number[];
   lineas_investigacion_nombres?: string;
   logo?: string | null;
+  // Campos de aval institucional
+  archivo_aval?: string | null;
+  tipo_documento?: TipoDocumentoAval;
+  numero_acta?: string;
+  fecha_aprobacion?: string | null;
+  estado_aval?: EstadoAval;
+  observaciones?: string;
+  usuario_aprobacion?: number | null;
+  usuario_aprobacion_nombre?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

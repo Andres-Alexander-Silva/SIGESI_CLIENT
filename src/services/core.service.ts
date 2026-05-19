@@ -3,6 +3,7 @@ import { PaginatedResponse } from "@/types";
 import {
   Semillero,
   SemilleroCreate,
+  SemilleroAval,
   Proyecto,
   ProyectoCreate,
   ProyectoChangeState,
@@ -64,6 +65,12 @@ export const semillerosService = {
     api.patch<Semillero>(`/core/semilleros/${id}/`, data).then((r) => r.data),
 
   remove: (id: number) => api.delete(`/core/semilleros/${id}/`),
+
+  getAval: (id: number) =>
+    api.get<SemilleroAval>(`/core/semilleros/${id}/aval/`).then((r) => r.data),
+
+  updateAval: (id: number, data: SemilleroAval) =>
+    api.patch<SemilleroAval>(`/core/semilleros/${id}/aval/`, data).then((r) => r.data),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

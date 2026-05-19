@@ -13,12 +13,33 @@ export interface DashboardApiStats {
 
 export type DashboardScope = "administrador" | "grupo" | "semillero";
 
+// ─── Métricas por proyecto ─────────────────────────────────────────────────
+export interface MetricaProyecto {
+  id: number;
+  titulo: string;
+  codigo: string;
+  estado: string;
+  porcentaje_progreso: number;
+  actividades_completadas: number;
+  total_actividades: number;
+  alertas: string[];
+  estado_cronograma: "al_dia" | "atrasado" | "en_riesgo";
+  fecha_fin_estimada?: string | null;
+  director_nombre?: string;
+  lider_nombre?: string;
+}
+
+export interface MetricasDashboardResponse {
+  resumen: {
+    total_proyectos: number;
+    proyectos_al_dia: number;
+    proyectos_atrasados: number;
+    proyectos_en_riesgo: number;
+  };
+  proyectos: MetricaProyecto[];
+}
+
 export const dashboardService = {
-  /**
-   * Obtiene los indicadores del dashboard desde el endpoint real.
-   * @param scope  'administrador' | 'grupo' | 'semillero'
-   * @param semestre  Formato 'YYYY-1' o 'YYYY-2'. Si se omite, la API usa el vigente.
-   */
   async getStats(
     scope?: DashboardScope,
     semestre?: string,
@@ -26,8 +47,18 @@ export const dashboardService = {
     const params: Record<string, string> = {};
     if (scope) params.scope = scope;
     if (semestre) params.semestre = semestre;
-
     const response = await api.get("/core/dashboard/", { params });
+    return response.data;
+  },
+
+  async getMetricasProyectos(
+    proyectoId?: number,
+  ): Promise<MetricasDashboardResponse> {
+    const params: Record<string, string> = {};
+    if (proyectoId) params.proyecto = String(proyectoId);
+    const response = await api.get("/core/proyectos/metricas-dashboard/", {
+      params,
+    });
     return response.data;
   },
 };

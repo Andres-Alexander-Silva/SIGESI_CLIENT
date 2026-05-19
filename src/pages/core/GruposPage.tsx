@@ -54,7 +54,7 @@ const EMPTY_FORM: GrupoInvestigacionCreate = {
   codigo: "",
   descripcion: "",
   fecha_creacion: getToday(),
-  programa_academico: 1,
+  programa_academico: 2,
   director: null,
   lineas_investigacion: [],
   is_active: true,

@@ -1,7 +1,7 @@
-import { Card, CardContent, Box, Typography } from '@mui/material';
-import { TrendingUp, TrendingDown } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
-import { ReactNode } from 'react';
+import { Card, CardContent, Box, Typography, Skeleton } from "@mui/material";
+import { TrendingUp, TrendingDown } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
@@ -11,6 +11,7 @@ interface StatCardProps {
   bgColor: string;
   trend?: number;
   subtitle?: string;
+  loading?: boolean;
 }
 
 export default function StatCard({
@@ -21,30 +22,53 @@ export default function StatCard({
   bgColor,
   trend,
   subtitle,
+  loading = false,
 }: StatCardProps) {
   const theme = useTheme();
-  const isPositive = trend && trend > 0;
+  const isPositive = trend !== undefined && trend > 0;
+
+  if (loading) {
+    return (
+      <Card sx={{ height: "100%", borderRadius: 3, minHeight: 110 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Skeleton variant="text" width="60%" height={20} sx={{ mb: 1 }} />
+          <Skeleton variant="text" width="40%" height={40} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
       sx={{
-        height: '100%',
+        height: "100%",
         borderRadius: 3,
-        transition: 'all 0.2s ease',
-        '&:hover': {
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 4px 20px rgba(0,0,0,0.3)'
-            : '0 4px 20px rgba(0,0,0,0.06)',
-          transform: 'translateY(-2px)',
+        transition: "all 0.2s ease",
+        "&:hover": {
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0 4px 20px rgba(0,0,0,0.3)"
+              : "0 4px 20px rgba(0,0,0,0.06)",
+          transform: "translateY(-2px)",
         },
       }}
     >
       <CardContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
           <Box>
             <Typography
               variant="body2"
-              sx={{ color: theme.palette.text.disabled, fontWeight: 500, mb: 0.5 }}
+              sx={{
+                color: theme.palette.text.disabled,
+                fontWeight: 500,
+                mb: 0.5,
+              }}
             >
               {title}
             </Typography>
@@ -60,11 +84,17 @@ export default function StatCard({
               {value}
             </Typography>
             {trend !== undefined && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}
+              >
                 {isPositive ? (
-                  <TrendingUp sx={{ fontSize: 16, color: theme.palette.secondary.main }} />
+                  <TrendingUp
+                    sx={{ fontSize: 16, color: theme.palette.secondary.main }}
+                  />
                 ) : (
-                  <TrendingDown sx={{ fontSize: 16, color: theme.palette.primary.main }} />
+                  <TrendingDown
+                    sx={{ fontSize: 16, color: theme.palette.primary.main }}
+                  />
                 )}
                 <Typography
                   variant="caption"
@@ -77,7 +107,10 @@ export default function StatCard({
                 >
                   {Math.abs(trend)}%
                 </Typography>
-                <Typography variant="caption" sx={{ color: theme.palette.text.disabled }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: theme.palette.text.disabled }}
+                >
                   vs mes anterior
                 </Typography>
               </Box>
@@ -85,7 +118,11 @@ export default function StatCard({
             {subtitle && (
               <Typography
                 variant="caption"
-                sx={{ color: theme.palette.text.disabled, mt: 0.5, display: 'block' }}
+                sx={{
+                  color: theme.palette.text.disabled,
+                  mt: 0.5,
+                  display: "block",
+                }}
               >
                 {subtitle}
               </Typography>
@@ -94,9 +131,9 @@ export default function StatCard({
 
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               borderRadius: 3,
               width: 48,
               height: 48,

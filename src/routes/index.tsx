@@ -26,8 +26,10 @@ import MiembrosPage from "@/pages/core/MiembrosPage";
 import ActividadesPage from "@/pages/core/ActividadesPage";
 import AvancesPage from "@/pages/core/AvancesPage";
 
-// AuthProviderWrapper: monta el AuthProvider dentro del árbol del Router
-// para que useNavigate() esté disponible. Envuelve TODAS las rutas.
+// ── NUEVO: módulo de reportes ──────────────────────────────────────────────────
+import ReportesPageWrapper from "@/pages/reportes/ReportesPageWrapper";
+import ProduccionAcademicaPage from "@/pages/core/ProduccionAcademicaPage";
+
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   return <AuthProvider navigate={navigate}>{children}</AuthProvider>;
@@ -35,7 +37,6 @@ function AuthProviderWrapper({ children }: { children: ReactNode }) {
 
 const router = createBrowserRouter([
   {
-    // Raíz: AuthProvider cubre todo el árbol (públicas + protegidas)
     path: "/",
     element: (
       <AuthProviderWrapper>
@@ -43,21 +44,12 @@ const router = createBrowserRouter([
       </AuthProviderWrapper>
     ),
     children: [
-      // ── Rutas públicas ──────────────────────────────────────────
-      {
-        path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "recuperacion",
-        element: <PasswordRecoveryPage />,
-      },
-      {
-        path: "reset-password",
-        element: <ResetPasswordPage />,
-      },
+      // ── Rutas públicas ──────────────────────────────────────────────────────
+      { path: "login", element: <LoginPage /> },
+      { path: "recuperacion", element: <PasswordRecoveryPage /> },
+      { path: "reset-password", element: <ResetPasswordPage /> },
 
-      // ── Rutas protegidas ────────────────────────────────────────
+      // ── Rutas protegidas ────────────────────────────────────────────────────
       {
         path: "/",
         element: (
@@ -66,7 +58,6 @@ const router = createBrowserRouter([
           </PermissionsProvider>
         ),
         children: [
-          // Selección de rol: autenticado pero SIN sidebar/layout
           { path: "select-role", element: <SelectRolePage /> },
 
           {
@@ -78,31 +69,23 @@ const router = createBrowserRouter([
               // Módulos principales
               { path: "semilleros", element: <SemillerosPage /> },
               { path: "proyectos", element: <ProyectosPage /> },
-              {
-                path: "grupos",
-                element: <GruposPage />,
-              },
-              {
-                path: "lineas_investigacion",
-                element: <LineasPage />,
-              },
-              {
-                path: "inscripcion",
-                element: <InscripcionesPage />,
-              },
-              {
-                path: "gestionar_miembros",
-                element: <MiembrosPage />,
-              },
+              { path: "grupos", element: <GruposPage /> },
+              { path: "lineas_investigacion", element: <LineasPage /> },
+              { path: "inscripcion", element: <InscripcionesPage /> },
+              { path: "gestionar_miembros", element: <MiembrosPage /> },
+              { path: "actividades", element: <ActividadesPage /> },
+              { path: "avances", element: <AvancesPage /> },
+              { path: "produccion_academica", element: <ProduccionAcademicaPage /> },
 
-              {
-                path: "actividades",
-                element: <ActividadesPage />,
-              },
-              {
-                path: "avances",
-                element: <AvancesPage />,
-              },
+              // ── Reportes ─────────────────────────────────────────────────────
+              // URL: /reportes
+              // Roles con acceso: administrador, director_grupo,
+              //                   director_semillero, lider_estudiantil,
+              //                   estudiante
+              // El componente wrapper lee el rol activo del contexto y decide
+              // qué vista renderizar internamente (VistaDirector / VistaAdministrador
+              // / VistaEstudiante).
+              { path: "reportes", element: <ReportesPageWrapper /> },
 
               // Configuración
               { path: "configuracion/usuarios", element: <UsersPage /> },
@@ -120,10 +103,7 @@ const router = createBrowserRouter([
   },
 
   // Fallback general
-  {
-    path: "*",
-    element: <Navigate to="/login" replace />,
-  },
+  { path: "*", element: <Navigate to="/login" replace /> },
 ]);
 
 function PlaceholderPage({ title }: { title: string }) {
