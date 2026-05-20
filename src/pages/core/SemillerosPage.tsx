@@ -1,5 +1,5 @@
 // src/pages/core/SemillerosPage.tsx
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -42,6 +42,8 @@ import {
   LogoutOutlined,
   VerifiedOutlined,
   OpenInNewOutlined,
+  UploadFileOutlined,
+  CheckCircleOutlined,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -58,7 +60,6 @@ import {
   SemilleroCreate,
   SemilleroAval,
   EstadoAval,
-  TipoDocumentoAval,
   GrupoInvestigacion,
   LineaInvestigacion,
 } from "@/types/core";
@@ -82,9 +83,8 @@ const EMPTY_FORM: SemilleroCreate = {
 
 const EMPTY_AVAL_FORM: SemilleroAval = {
   estado_aval: "sin_aprobar",
-  tipo_documento: undefined,
+  tipo_documento: "acta",
   numero_acta: "",
-  fecha_aprobacion: null,
   observaciones: "",
 };
 
@@ -105,13 +105,6 @@ const ESTADO_AVAL_COLORS: Record<
   rechazado: "error",
 };
 
-const TIPO_DOCUMENTO_LABELS: Record<TipoDocumentoAval, string> = {
-  acta: "Acta",
-  resolucion: "Resolución",
-  oficio: "Oficio",
-  certificado: "Certificado",
-};
-
 export default function SemillerosPage() {
   const theme = useTheme();
   const { can } = usePermissions();
@@ -128,7 +121,9 @@ export default function SemillerosPage() {
   const [directores, setDirectores] = useState<UserAdmin[]>([]);
   const [lideres, setLideres] = useState<UserAdmin[]>([]);
   const [lineas, setLineas] = useState<LineaInvestigacion[]>([]);
-  const [inscripciones, setInscripciones] = useState<Record<number, boolean>>({});
+  const [inscripciones, setInscripciones] = useState<Record<number, boolean>>(
+    {},
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -152,7 +147,11 @@ export default function SemillerosPage() {
   // Diálogo Aval
   const [avalDialogOpen, setAvalDialogOpen] = useState(false);
   const [avalSemillero, setAvalSemillero] = useState<Semillero | null>(null);
-  const [avalForm, setAvalForm] = useState<SemilleroAval>({ ...EMPTY_AVAL_FORM });
+  const [avalForm, setAvalForm] = useState<SemilleroAval>({
+    ...EMPTY_AVAL_FORM,
+  });
+  const [avalFile, setAvalFile] = useState<File | null>(null);
+  const avalFileRef = useRef<HTMLInputElement>(null);
   const [avalSaving, setAvalSaving] = useState(false);
   const [avalError, setAvalError] = useState("");
 
@@ -235,7 +234,9 @@ export default function SemillerosPage() {
         });
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Error al procesar la inscripción.");
+      setError(
+        err.response?.data?.detail || "Error al procesar la inscripción.",
+      );
     }
   };
 
@@ -268,7 +269,11 @@ export default function SemillerosPage() {
 
   const handleSave = async () => {
     setFormError("");
-    if (!form.nombre?.trim() || !form.codigo?.trim() || !form.objetivo?.trim()) {
+    if (
+      !form.nombre?.trim() ||
+      !form.codigo?.trim() ||
+      !form.objetivo?.trim()
+    ) {
       setFormError("Nombre, código y objetivo son obligatorios.");
       return;
     }
@@ -289,7 +294,9 @@ export default function SemillerosPage() {
       setDialogOpen(false);
       loadSemilleros();
     } catch (err: any) {
-      setFormError(err.response?.data?.detail || "Error al guardar el semillero.");
+      setFormError(
+        err.response?.data?.detail || "Error al guardar el semillero.",
+      );
     } finally {
       setSaving(false);
     }
@@ -304,7 +311,9 @@ export default function SemillerosPage() {
       setDeleteId(null);
       loadSemilleros();
     } catch (err: any) {
-      setError(err.response?.data?.detail || "No se pudo inactivar el semillero.");
+      setError(
+        err.response?.data?.detail || "No se pudo inactivar el semillero.",
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -315,11 +324,11 @@ export default function SemillerosPage() {
     setAvalSemillero(s);
     setAvalForm({
       estado_aval: s.estado_aval ?? "sin_aprobar",
-      tipo_documento: s.tipo_documento,
+      tipo_documento: s.tipo_documento ?? "acta",
       numero_acta: s.numero_acta ?? "",
-      fecha_aprobacion: s.fecha_aprobacion ?? null,
       observaciones: s.observaciones ?? "",
     });
+    setAvalFile(null);
     setAvalError("");
     setAvalDialogOpen(true);
   };
@@ -328,25 +337,27 @@ export default function SemillerosPage() {
     if (!avalSemillero) return;
     setAvalError("");
 
-    if (avalForm.estado_aval === "aprobado") {
-      if (!avalForm.tipo_documento) {
-        setAvalError("El tipo de documento es requerido al aprobar.");
-        return;
-      }
-      if (!avalForm.numero_acta?.trim()) {
-        setAvalError("El número de acta es requerido al aprobar.");
-        return;
-      }
-    }
+    const payload: SemilleroAval = {
+      estado_aval: avalForm.estado_aval,
+      tipo_documento: avalForm.tipo_documento ?? "acta",
+      numero_acta: avalForm.numero_acta,
+      observaciones: avalForm.observaciones,
+    };
 
     setAvalSaving(true);
     try {
-      await semillerosService.updateAval(avalSemillero.id, avalForm);
+      await semillerosService.updateAval(
+        avalSemillero.id,
+        payload,
+        avalFile ?? undefined,
+      );
       setSuccessMsg("Aval actualizado correctamente.");
       setAvalDialogOpen(false);
       loadSemilleros();
     } catch (err: any) {
-      setAvalError(err.response?.data?.detail || "Error al actualizar el aval.");
+      setAvalError(
+        err.response?.data?.detail || "Error al actualizar el aval.",
+      );
     } finally {
       setAvalSaving(false);
     }
@@ -374,10 +385,16 @@ export default function SemillerosPage() {
               bgcolor: `${theme.palette.primary.main}15`,
             }}
           >
-            <ScienceOutlined sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
+            <ScienceOutlined
+              sx={{ color: theme.palette.primary.main, fontSize: 28 }}
+            />
           </Box>
           <Box>
-            <Typography variant="h5" fontWeight={700} fontFamily='"DM Sans", sans-serif'>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              fontFamily='"DM Sans", sans-serif'
+            >
               Semilleros
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -392,7 +409,7 @@ export default function SemillerosPage() {
               <RefreshOutlined />
             </IconButton>
           </Tooltip>
-          {!isStudent && canCreate && (
+          {!isStudent && (canCreate || isAdmin) && (
             <Button
               variant="contained"
               startIcon={<AddOutlined />}
@@ -406,7 +423,11 @@ export default function SemillerosPage() {
       </Box>
 
       {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg("")}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setSuccessMsg("")}
+        >
           {successMsg}
         </Alert>
       )}
@@ -431,23 +452,43 @@ export default function SemillerosPage() {
         sx={{ mb: 3, width: { xs: "100%", sm: 350 } }}
       />
 
-      <Paper sx={{ borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}>
+      <Paper
+        sx={{ borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}
+      >
         <TableContainer>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell><strong>Nombre</strong></TableCell>
-                <TableCell align="center"><strong>Código</strong></TableCell>
-                <TableCell><strong>Grupo</strong></TableCell>
-                <TableCell><strong>Director</strong></TableCell>
-                <TableCell align="center"><strong>Fecha Creación</strong></TableCell>
-                <TableCell align="center"><strong>Aval</strong></TableCell>
-                <TableCell align="center"><strong>Estado</strong></TableCell>
+                <TableCell>
+                  <strong>Nombre</strong>
+                </TableCell>
+                <TableCell align="center">
+                  <strong>Código</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Grupo</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Director</strong>
+                </TableCell>
+                <TableCell align="center">
+                  <strong>Fecha Creación</strong>
+                </TableCell>
+                <TableCell align="center">
+                  <strong>Aval</strong>
+                </TableCell>
+                <TableCell align="center">
+                  <strong>Estado</strong>
+                </TableCell>
                 {isStudent && (
-                  <TableCell align="center"><strong>Inscripción</strong></TableCell>
+                  <TableCell align="center">
+                    <strong>Inscripción</strong>
+                  </TableCell>
                 )}
                 {!isStudent && (canEdit || canDelete || isAdmin) && (
-                  <TableCell align="center"><strong>Acciones</strong></TableCell>
+                  <TableCell align="center">
+                    <strong>Acciones</strong>
+                  </TableCell>
                 )}
               </TableRow>
             </TableHead>
@@ -487,10 +528,16 @@ export default function SemillerosPage() {
                     <TableCell align="center">{s.fecha_creacion}</TableCell>
                     <TableCell align="center">
                       <Chip
-                        label={ESTADO_AVAL_LABELS[s.estado_aval ?? "sin_aprobar"]}
-                        color={ESTADO_AVAL_COLORS[s.estado_aval ?? "sin_aprobar"]}
+                        label={
+                          ESTADO_AVAL_LABELS[s.estado_aval ?? "sin_aprobar"]
+                        }
+                        color={
+                          ESTADO_AVAL_COLORS[s.estado_aval ?? "sin_aprobar"]
+                        }
                         size="small"
-                        variant={s.estado_aval === "aprobado" ? "filled" : "outlined"}
+                        variant={
+                          s.estado_aval === "aprobado" ? "filled" : "outlined"
+                        }
                       />
                     </TableCell>
                     <TableCell align="center">
@@ -508,7 +555,11 @@ export default function SemillerosPage() {
                           variant={isInscrito(s.id) ? "outlined" : "contained"}
                           color={isInscrito(s.id) ? "error" : "primary"}
                           startIcon={
-                            isInscrito(s.id) ? <LogoutOutlined /> : <PersonAddOutlined />
+                            isInscrito(s.id) ? (
+                              <LogoutOutlined />
+                            ) : (
+                              <PersonAddOutlined />
+                            )
                           }
                           onClick={() => handleToggleInscripcion(s.id)}
                         >
@@ -519,9 +570,12 @@ export default function SemillerosPage() {
 
                     {!isStudent && (canEdit || canDelete || isAdmin) && (
                       <TableCell align="center">
-                        {canEdit && (
+                        {(canEdit || isAdmin) && (
                           <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => openEdit(s)}>
+                            <IconButton
+                              size="small"
+                              onClick={() => openEdit(s)}
+                            >
                               <EditOutlined fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -537,7 +591,7 @@ export default function SemillerosPage() {
                             </IconButton>
                           </Tooltip>
                         )}
-                        {canDelete && (
+                        {(canDelete || isAdmin) && (
                           <Tooltip title="Inactivar">
                             <IconButton
                               size="small"
@@ -572,41 +626,63 @@ export default function SemillerosPage() {
       </Paper>
 
       {/* ==================== DIÁLOGO CREAR / EDITAR ==================== */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>
           {editing ? "Editar Semillero" : "Nuevo Semillero"}
         </DialogTitle>
         <DialogContent dividers>
           {formError && (
-            <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {formError}
+            </Alert>
           )}
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, pt: 2 }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 2,
+              pt: 2,
+            }}
+          >
             <TextField
               label="Nombre *"
               value={form.nombre}
-              onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, nombre: e.target.value }))
+              }
               size="small"
               sx={{ gridColumn: "1 / -1" }}
             />
             <TextField
               label="Código *"
               value={form.codigo}
-              onChange={(e) => setForm((f) => ({ ...f, codigo: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, codigo: e.target.value }))
+              }
               size="small"
             />
             <TextField
               label="Fecha de Creación *"
               type="date"
               value={form.fecha_creacion}
-              onChange={(e) => setForm((f) => ({ ...f, fecha_creacion: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, fecha_creacion: e.target.value }))
+              }
               size="small"
               InputLabelProps={{ shrink: true }}
             />
             <TextField
               label="Objetivo *"
               value={form.objetivo}
-              onChange={(e) => setForm((f) => ({ ...f, objetivo: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, objetivo: e.target.value }))
+              }
               size="small"
               multiline
               rows={3}
@@ -615,7 +691,9 @@ export default function SemillerosPage() {
             <TextField
               label="Misión"
               value={form.mision}
-              onChange={(e) => setForm((f) => ({ ...f, mision: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, mision: e.target.value }))
+              }
               size="small"
               multiline
               rows={2}
@@ -623,7 +701,9 @@ export default function SemillerosPage() {
             <TextField
               label="Visión"
               value={form.vision}
-              onChange={(e) => setForm((f) => ({ ...f, vision: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, vision: e.target.value }))
+              }
               size="small"
               multiline
               rows={2}
@@ -631,12 +711,18 @@ export default function SemillerosPage() {
             <Autocomplete
               options={grupos}
               getOptionLabel={(g) => `${g.nombre} (${g.codigo})`}
-              value={grupos.find((g) => g.id === form.grupo_investigacion) ?? null}
+              value={
+                grupos.find((g) => g.id === form.grupo_investigacion) ?? null
+              }
               onChange={(_, val) =>
                 setForm((f) => ({ ...f, grupo_investigacion: val?.id ?? 0 }))
               }
               renderInput={(params) => (
-                <TextField {...params} label="Grupo de Investigación *" size="small" />
+                <TextField
+                  {...params}
+                  label="Grupo de Investigación *"
+                  size="small"
+                />
               )}
             />
             <Autocomplete
@@ -657,7 +743,9 @@ export default function SemillerosPage() {
               getOptionLabel={(u) =>
                 `${u.first_name} ${u.last_name}`.trim() || u.username
               }
-              value={lideres.find((l) => l.id === form.lider_estudiantil) ?? null}
+              value={
+                lideres.find((l) => l.id === form.lider_estudiantil) ?? null
+              }
               onChange={(_, val) =>
                 setForm((f) => ({ ...f, lider_estudiantil: val?.id ?? null }))
               }
@@ -680,7 +768,11 @@ export default function SemillerosPage() {
                 }))
               }
               renderInput={(params) => (
-                <TextField {...params} label="Líneas de Investigación" size="small" />
+                <TextField
+                  {...params}
+                  label="Líneas de Investigación"
+                  size="small"
+                />
               )}
               sx={{ gridColumn: "1 / -1" }}
             />
@@ -714,14 +806,21 @@ export default function SemillerosPage() {
         fullWidth
       >
         <DialogTitle
-          sx={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}
+          sx={{
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
           <VerifiedOutlined color="primary" />
           Gestionar Aval Institucional
         </DialogTitle>
         <DialogContent dividers>
           {avalError && (
-            <Alert severity="error" sx={{ mb: 2 }}>{avalError}</Alert>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {avalError}
+            </Alert>
           )}
 
           {avalSemillero && (
@@ -754,45 +853,8 @@ export default function SemillerosPage() {
               ))}
             </TextField>
 
-            <Divider textAlign="left">
-              <Typography variant="caption" color="text.secondary">
-                Documento de aprobación
-              </Typography>
-            </Divider>
-
             <TextField
-              select
-              label={
-                avalForm.estado_aval === "aprobado"
-                  ? "Tipo de Documento *"
-                  : "Tipo de Documento"
-              }
-              value={avalForm.tipo_documento ?? ""}
-              onChange={(e) =>
-                setAvalForm((f) => ({
-                  ...f,
-                  tipo_documento: (e.target.value as TipoDocumentoAval) || undefined,
-                }))
-              }
-              size="small"
-              fullWidth
-            >
-              <MenuItem value="">— Sin especificar —</MenuItem>
-              {(Object.keys(TIPO_DOCUMENTO_LABELS) as TipoDocumentoAval[]).map(
-                (key) => (
-                  <MenuItem key={key} value={key}>
-                    {TIPO_DOCUMENTO_LABELS[key]}
-                  </MenuItem>
-                ),
-              )}
-            </TextField>
-
-            <TextField
-              label={
-                avalForm.estado_aval === "aprobado"
-                  ? "Número de Acta *"
-                  : "Número de Acta"
-              }
+              label="Número de Acta"
               value={avalForm.numero_acta ?? ""}
               onChange={(e) =>
                 setAvalForm((f) => ({ ...f, numero_acta: e.target.value }))
@@ -802,21 +864,68 @@ export default function SemillerosPage() {
               placeholder="Ej: ACTA-2026-001"
             />
 
-            <TextField
-              label="Fecha de Aprobación"
-              type="date"
-              value={avalForm.fecha_aprobacion ?? ""}
-              onChange={(e) =>
-                setAvalForm((f) => ({
-                  ...f,
-                  fecha_aprobacion: e.target.value || null,
-                }))
-              }
-              size="small"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              helperText="Se registra automáticamente al aprobar (puede ajustarse manualmente)"
-            />
+            {/* Subir archivo del aval */}
+            <Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mb: 0.5, display: "block" }}
+              >
+                Archivo del aval (PDF, imagen)
+              </Typography>
+              <input
+                ref={avalFileRef}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                style={{ display: "none" }}
+                onChange={(e) => setAvalFile(e.target.files?.[0] ?? null)}
+              />
+              <Box
+                onClick={() => avalFileRef.current?.click()}
+                sx={{
+                  border: `2px dashed`,
+                  borderColor: avalFile ? "success.main" : "divider",
+                  borderRadius: 2,
+                  p: 2,
+                  textAlign: "center",
+                  cursor: "pointer",
+                  "&:hover": { borderColor: "primary.main" },
+                }}
+              >
+                {avalFile ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <CheckCircleOutlined color="success" fontSize="small" />
+                    <Typography variant="body2" fontWeight={600}>
+                      {avalFile.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      ({(avalFile.size / 1024).toFixed(1)} KB)
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <UploadFileOutlined fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      Haz clic para subir el documento
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
 
             <TextField
               label="Observaciones"
@@ -831,39 +940,40 @@ export default function SemillerosPage() {
               placeholder="Notas o comentarios sobre el aval..."
             />
 
-            {avalSemillero?.archivo_aval && (
-              <>
-                <Divider />
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Archivo del aval actual:
-                  </Typography>
-                  <br />
-                  <Link
-                    href={avalSemillero.archivo_aval}
-                    target="_blank"
-                    rel="noopener"
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      mt: 0.5,
-                    }}
-                  >
-                    Ver documento <OpenInNewOutlined fontSize="inherit" />
-                  </Link>
-                </Box>
-              </>
-            )}
+            {/* Info readOnly: quién aprobó, fecha y enlace al archivo */}
+            {(avalSemillero?.usuario_aprobacion_nombre ||
+              avalSemillero?.archivo_aval) && <Divider />}
 
             {avalSemillero?.usuario_aprobacion_nombre && (
               <Alert severity="info" icon={<VerifiedOutlined />}>
-                Aprobado por:{" "}
+                Aprobado por{" "}
                 <strong>{avalSemillero.usuario_aprobacion_nombre}</strong>
                 {avalSemillero.fecha_aprobacion && (
                   <> el {avalSemillero.fecha_aprobacion}</>
                 )}
               </Alert>
+            )}
+
+            {avalSemillero?.archivo_aval && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Archivo del aval:
+                </Typography>
+                <br />
+                <Link
+                  href={avalSemillero.archivo_aval}
+                  target="_blank"
+                  rel="noopener"
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    mt: 0.5,
+                  }}
+                >
+                  Ver documento <OpenInNewOutlined fontSize="inherit" />
+                </Link>
+              </Box>
             )}
           </Stack>
         </DialogContent>

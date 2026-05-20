@@ -5,8 +5,12 @@ interface LoginApiResponse {
   usuarioId: number;
   email: string;
   names: string;
+  /** Array de roles — puede venir o no según versión del backend */
   roles?: string[];
   rolesDisplay?: string[];
+  /** Campos actuales del swagger: rol único como string */
+  roleCode?: string;
+  roleName?: string;
   token: string;
   refreshToken: string;
   response: string;
@@ -23,7 +27,13 @@ function mapLoginResponse(data: LoginApiResponse): LoginResult {
   const first_name = parts[0] ?? "";
   const last_name = parts.slice(1).join(" ");
 
-  const rolesArray = (data.roles ?? []) as UserRole[];
+  // El swagger define roleCode (string único). Si el backend ya envía roles[]
+  // también se soporta. De este modo nunca queda vacío.
+  const rolesArray: UserRole[] = data.roles?.length
+    ? (data.roles as UserRole[])
+    : data.roleCode
+    ? ([data.roleCode] as UserRole[])
+    : [];
 
   const user: User = {
     id: data.usuarioId,
@@ -40,7 +50,7 @@ function mapLoginResponse(data: LoginApiResponse): LoginResult {
       refresh: data.refreshToken,
     },
     user,
-    roles: data.roles ?? [],
+    roles: rolesArray,
   };
 }
 

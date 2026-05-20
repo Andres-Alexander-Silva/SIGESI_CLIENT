@@ -67,10 +67,14 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
         for (const opcion of menu.opciones ?? []) {
           const key = normalizeUrl(opcion.url);
           const accionMap = new Map<AccionType, boolean>([
-            ["ver", opcion.puede_consultar],
-            ["crear", opcion.puede_crear],
-            ["editar", opcion.puede_actualizar],
+            ["ver",      opcion.puede_consultar],
+            ["crear",    opcion.puede_crear],
+            ["editar",   opcion.puede_actualizar],
             ["eliminar", opcion.puede_eliminar],
+            // "aprobar" y "exportar" no tienen campo propio en la API;
+            // se derivan de puede_actualizar / puede_consultar respectivamente.
+            ["aprobar",  opcion.puede_actualizar],
+            ["exportar", opcion.puede_consultar],
           ]);
           index.set(key, accionMap);
         }
@@ -162,7 +166,16 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     (menuUrl: string, accion: AccionType): boolean => {
       const key = normalizeUrl(menuUrl);
       const accionMap = permIndex.get(key);
-      if (!accionMap) return false;
+      if (!accionMap) {
+        // En desarrollo: avisa si hay permisos cargados pero la URL no coincide
+        if (permIndex.size > 0 && import.meta.env.DEV) {
+          console.warn(
+            `[Permisos] URL no encontrada: "${key}". Disponibles:`,
+            [...permIndex.keys()],
+          );
+        }
+        return false;
+      }
       return accionMap.get(accion) ?? false;
     },
     [permIndex],

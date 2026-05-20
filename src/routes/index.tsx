@@ -29,6 +29,9 @@ import AvancesPage from "@/pages/core/AvancesPage";
 // ── NUEVO: módulo de reportes ──────────────────────────────────────────────────
 import ReportesPageWrapper from "@/pages/reportes/ReportesPageWrapper";
 import ProduccionAcademicaPage from "@/pages/core/ProduccionAcademicaPage";
+import ProgramasAcademicosPage from "@/pages/core/ProgramasAcademicosPage";
+import CronogramaProyectoPage from "@/pages/core/CronogramaProyectoPage";
+import EvaluacionesProyectoPage from "@/pages/core/EvaluacionesProyectoPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -76,6 +79,9 @@ const router = createBrowserRouter([
               { path: "actividades", element: <ActividadesPage /> },
               { path: "avances", element: <AvancesPage /> },
               { path: "produccion_academica", element: <ProduccionAcademicaPage /> },
+              { path: "programas_academicos", element: <ProgramasAcademicosPage /> },
+              { path: "cronograma_proyecto", element: <CronogramaProyectoPage /> },
+              { path: "evaluaciones_proyecto", element: <EvaluacionesProyectoPage /> },
 
               // ── Reportes ─────────────────────────────────────────────────────
               // URL: /reportes

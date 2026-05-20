@@ -175,8 +175,13 @@ function fmtDate(d: string | null) {
 
 function useApi<T>(
   url: string | null,
-  token: string
-): { data: T | null; loading: boolean; error: string | null; refetch: () => void } {
+  token: string,
+): {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+} {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -261,7 +266,11 @@ function IndicadorCard({
         {icon}
       </Box>
       <Box>
-        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ fontWeight: 500 }}
+        >
           {label}
         </Typography>
         {loading ? (
@@ -303,8 +312,8 @@ function ProgressBar({ value, label }: { value: number; label?: string }) {
               value >= 75
                 ? "success.main"
                 : value >= 40
-                ? "warning.main"
-                : "error.main",
+                  ? "warning.main"
+                  : "error.main",
           },
         }}
       />
@@ -350,10 +359,9 @@ function VistaEstudiante({ token }: { token: string }) {
     return p.toString();
   }, [page, debouncedSearch]);
 
-  const { data, loading, error, refetch } = useApi<PaginatedResponse<ReporteProyecto>>(
-    `/reportes/proyectos/?${queryStr}`,
-    token
-  );
+  const { data, loading, error, refetch } = useApi<
+    PaginatedResponse<ReporteProyecto>
+  >(`/reportes/proyectos/?${queryStr}`, token);
 
   return (
     <Stack spacing={3}>
@@ -375,7 +383,12 @@ function VistaEstudiante({ token }: { token: string }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           InputProps={{
-            startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "text.disabled" }} />,
+            startAdornment: (
+              <SearchIcon
+                fontSize="small"
+                sx={{ mr: 1, color: "text.disabled" }}
+              />
+            ),
             endAdornment: search ? (
               <IconButton size="small" onClick={() => setSearch("")}>
                 <ClearIcon fontSize="small" />
@@ -405,11 +418,21 @@ function VistaEstudiante({ token }: { token: string }) {
         <Table size="small">
           <TableHead sx={{ bgcolor: "background.surface" }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>Proyecto</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>Estado</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>Avance</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>Actividades</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>Producciones</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>
+                Proyecto
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>
+                Estado
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>
+                Avance
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>
+                Actividades
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>
+                Producciones
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -485,9 +508,9 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
   const [semestre, setSemestre] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [tabActiva, setTabActiva] = useState<"proyectos" | "semilleros" | "informes">(
-    "proyectos"
-  );
+  const [tabActiva, setTabActiva] = useState<
+    "proyectos" | "semilleros" | "informes"
+  >("proyectos");
   const [page, setPage] = useState(0);
 
   useEffect(() => {
@@ -497,10 +520,8 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
 
   // Dashboard
   const dashParams = semestre ? `?semestre=${semestre}` : "";
-  const { data: dashboard, loading: loadingDash } = useApi<DashboardIndicadores>(
-    `/core/dashboard/${dashParams}`,
-    token
-  );
+  const { data: dashboard, loading: loadingDash } =
+    useApi<DashboardIndicadores>(`/core/dashboard/${dashParams}`, token);
 
   // Proyectos
   const proyectosParams = useMemo(() => {
@@ -510,18 +531,30 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
     return p.toString();
   }, [page, debouncedSearch]);
 
-  const { data: proyectosData, loading: loadingProyectos, error: errorProyectos, refetch: refetchProyectos } =
-    useApi<PaginatedResponse<ReporteProyecto>>(
-      tabActiva === "proyectos" ? `/reportes/proyectos/?${proyectosParams}` : null,
-      token
-    );
+  const {
+    data: proyectosData,
+    loading: loadingProyectos,
+    error: errorProyectos,
+    refetch: refetchProyectos,
+  } = useApi<PaginatedResponse<ReporteProyecto>>(
+    tabActiva === "proyectos"
+      ? `/reportes/proyectos/?${proyectosParams}`
+      : null,
+    token,
+  );
 
   // Semilleros
-  const { data: semillerosData, loading: loadingSemilleros, error: errorSemilleros, refetch: refetchSemilleros } =
-    useApi<PaginatedResponse<ReporteSemillero>>(
-      tabActiva === "semilleros" ? `/reportes/semilleros/?page=${page + 1}` : null,
-      token
-    );
+  const {
+    data: semillerosData,
+    loading: loadingSemilleros,
+    error: errorSemilleros,
+    refetch: refetchSemilleros,
+  } = useApi<PaginatedResponse<ReporteSemillero>>(
+    tabActiva === "semilleros"
+      ? `/reportes/semilleros/?page=${page + 1}`
+      : null,
+    token,
+  );
 
   // Informes
   const informesParams = useMemo(() => {
@@ -532,11 +565,15 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
     return p.toString();
   }, [page, semestre, debouncedSearch]);
 
-  const { data: informesData, loading: loadingInformes, error: errorInformes, refetch: refetchInformes } =
-    useApi<PaginatedResponse<Informe>>(
-      tabActiva === "informes" ? `/reportes/?${informesParams}` : null,
-      token
-    );
+  const {
+    data: informesData,
+    loading: loadingInformes,
+    error: errorInformes,
+    refetch: refetchInformes,
+  } = useApi<PaginatedResponse<Informe>>(
+    tabActiva === "informes" ? `/reportes/?${informesParams}` : null,
+    token,
+  );
 
   const handleTabChange = (t: typeof tabActiva) => {
     setTabActiva(t);
@@ -544,12 +581,33 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
     setSearch("");
   };
 
-  const handleExport = () => {
-    const params = new URLSearchParams();
-    if (semestre) params.set("semestre", semestre);
-    if (debouncedSearch) params.set("search", debouncedSearch);
-    const url = `${API_BASE}/reportes/exportar/?${params.toString()}`;
-    window.open(url, "_blank");
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (semestre) params.set("semestre", semestre);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const response = await fetch(
+        `${API_BASE}/reportes/exportar/?${params.toString()}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!response.ok) throw new Error(`Error ${response.status}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_semilleros_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Error al exportar:", e);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -577,11 +635,18 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
         <Stack direction="row" spacing={1}>
           <Button
             variant="outlined"
-            startIcon={<FileDownloadIcon />}
+            startIcon={
+              exporting ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : (
+                <FileDownloadIcon />
+              )
+            }
             onClick={handleExport}
+            disabled={exporting}
             size="small"
           >
-            Exportar Excel
+            {exporting ? "Exportando..." : "Exportar Excel"}
           </Button>
         </Stack>
       </Box>
@@ -625,7 +690,12 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
             setPage(0);
           }}
           InputProps={{
-            startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "text.disabled" }} />,
+            startAdornment: (
+              <SearchIcon
+                fontSize="small"
+                sx={{ mr: 1, color: "text.disabled" }}
+              />
+            ),
             endAdornment: search ? (
               <IconButton size="small" onClick={() => setSearch("")}>
                 <ClearIcon fontSize="small" />
@@ -706,7 +776,11 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
 
       {/* ─── Tabs ─────────────────────────────────────────────── */}
       <Box>
-        <Stack direction="row" spacing={0} sx={{ borderBottom: "1px solid", borderColor: "divider" }}>
+        <Stack
+          direction="row"
+          spacing={0}
+          sx={{ borderBottom: "1px solid", borderColor: "divider" }}
+        >
           {(
             [
               { key: "proyectos", label: "Proyectos" },
@@ -724,7 +798,8 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                 py: 1.5,
                 fontWeight: tabActiva === key ? 700 : 400,
                 color: tabActiva === key ? "primary.main" : "text.secondary",
-                borderBottom: tabActiva === key ? "2px solid" : "2px solid transparent",
+                borderBottom:
+                  tabActiva === key ? "2px solid" : "2px solid transparent",
                 borderColor: tabActiva === key ? "primary.main" : "transparent",
                 "&:hover": { bgcolor: "action.hover" },
               }}
@@ -745,21 +820,102 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
               </IconButton>
             </Tooltip>
           </Box>
-          {errorProyectos && <Alert severity="error" sx={{ mb: 2 }}>{errorProyectos}</Alert>}
+          {errorProyectos && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorProyectos}
+            </Alert>
+          )}
           <TableContainer
-            sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
           >
             <Table size="small">
               <TableHead sx={{ bgcolor: "background.default" }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Proyecto</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Avance</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Actividades</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Producciones</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Estudiantes</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Director</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase", letterSpacing: .5 }}>Inicio</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Proyecto
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Estado
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Avance
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Actividades
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Producciones
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Estudiantes
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Director
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Inicio
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -767,17 +923,26 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                   ? Array.from({ length: 6 }).map((_, i) => (
                       <TableRow key={i}>
                         {Array.from({ length: 8 }).map((__, j) => (
-                          <TableCell key={j}><Skeleton /></TableCell>
+                          <TableCell key={j}>
+                            <Skeleton />
+                          </TableCell>
                         ))}
                       </TableRow>
                     ))
                   : proyectosData?.results.map((p) => (
                       <TableRow key={p.id} hover>
                         <TableCell>
-                          <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 220 }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            noWrap
+                            sx={{ maxWidth: 220 }}
+                          >
                             {p.titulo}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">{p.codigo}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {p.codigo}
+                          </Typography>
                         </TableCell>
                         <TableCell>
                           <Chip
@@ -793,20 +958,30 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                         <TableCell align="center">
                           <Typography variant="body2">
                             {p.actividades_completadas}
-                            <Typography component="span" color="text.secondary" variant="caption">
+                            <Typography
+                              component="span"
+                              color="text.secondary"
+                              variant="caption"
+                            >
                               /{p.total_actividades}
                             </Typography>
                           </Typography>
                         </TableCell>
-                        <TableCell align="center">{p.cantidad_producciones}</TableCell>
-                        <TableCell align="center">{p.estudiantes_activos_count}</TableCell>
+                        <TableCell align="center">
+                          {p.cantidad_producciones}
+                        </TableCell>
+                        <TableCell align="center">
+                          {p.estudiantes_activos_count}
+                        </TableCell>
                         <TableCell>
                           <Typography variant="caption" noWrap>
                             {p.director?.nombre_completo ?? "—"}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption">{fmtDate(p.fecha_inicio)}</Typography>
+                          <Typography variant="caption">
+                            {fmtDate(p.fecha_inicio)}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -827,7 +1002,9 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                 rowsPerPage={10}
                 rowsPerPageOptions={[10]}
                 onPageChange={(_, p) => setPage(p)}
-                labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}–${to} de ${count}`
+                }
               />
             )}
           </TableContainer>
@@ -844,20 +1021,85 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
               </IconButton>
             </Tooltip>
           </Box>
-          {errorSemilleros && <Alert severity="error" sx={{ mb: 2 }}>{errorSemilleros}</Alert>}
+          {errorSemilleros && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorSemilleros}
+            </Alert>
+          )}
           <TableContainer
-            sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
           >
             <Table size="small">
               <TableHead sx={{ bgcolor: "background.default" }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Semillero</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Director</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Proyectos</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Activos</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Matrículas</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Producciones</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Creación</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Semillero
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Director
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Proyectos
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Activos
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Matrículas
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Producciones
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Creación
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -865,27 +1107,47 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                   ? Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
                         {Array.from({ length: 7 }).map((__, j) => (
-                          <TableCell key={j}><Skeleton /></TableCell>
+                          <TableCell key={j}>
+                            <Skeleton />
+                          </TableCell>
                         ))}
                       </TableRow>
                     ))
                   : semillerosData?.results.map((s) => (
                       <TableRow key={s.id} hover>
                         <TableCell>
-                          <Typography variant="body2" fontWeight={600}>{s.nombre}</Typography>
-                          <Typography variant="caption" color="text.secondary">{s.codigo}</Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {s.nombre}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {s.codigo}
+                          </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption">{s.director?.nombre_completo ?? "—"}</Typography>
+                          <Typography variant="caption">
+                            {s.director?.nombre_completo ?? "—"}
+                          </Typography>
                         </TableCell>
-                        <TableCell align="center">{s.total_proyectos}</TableCell>
                         <TableCell align="center">
-                          <Chip label={s.proyectos_activos} color="success" size="small" />
+                          {s.total_proyectos}
                         </TableCell>
-                        <TableCell align="center">{s.total_matriculas}</TableCell>
-                        <TableCell align="center">{s.total_producciones}</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={s.proyectos_activos}
+                            color="success"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          {s.total_matriculas}
+                        </TableCell>
+                        <TableCell align="center">
+                          {s.total_producciones}
+                        </TableCell>
                         <TableCell>
-                          <Typography variant="caption">{fmtDate(s.fecha_creacion)}</Typography>
+                          <Typography variant="caption">
+                            {fmtDate(s.fecha_creacion)}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -906,7 +1168,9 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                 rowsPerPage={10}
                 rowsPerPageOptions={[10]}
                 onPageChange={(_, p) => setPage(p)}
-                labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}–${to} de ${count}`
+                }
               />
             )}
           </TableContainer>
@@ -923,19 +1187,76 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
               </IconButton>
             </Tooltip>
           </Box>
-          {errorInformes && <Alert severity="error" sx={{ mb: 2 }}>{errorInformes}</Alert>}
+          {errorInformes && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorInformes}
+            </Alert>
+          )}
           <TableContainer
-            sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
           >
             <Table size="small">
               <TableHead sx={{ bgcolor: "background.default" }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Título</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Tipo</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Semestre</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Generado</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.73rem", textTransform: "uppercase" }}>Archivo</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Título
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Tipo
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Semestre
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Estado
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Generado
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.73rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Archivo
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -943,14 +1264,21 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                   ? Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
                         {Array.from({ length: 6 }).map((__, j) => (
-                          <TableCell key={j}><Skeleton /></TableCell>
+                          <TableCell key={j}>
+                            <Skeleton />
+                          </TableCell>
                         ))}
                       </TableRow>
                     ))
                   : informesData?.results.map((inf) => (
                       <TableRow key={inf.id} hover>
                         <TableCell>
-                          <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 260 }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            noWrap
+                            sx={{ maxWidth: 260 }}
+                          >
                             {inf.titulo}
                           </Typography>
                         </TableCell>
@@ -960,18 +1288,29 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Chip label={inf.semestre} size="small" variant="outlined" />
+                          <Chip
+                            label={inf.semestre}
+                            size="small"
+                            variant="outlined"
+                          />
                         </TableCell>
                         <TableCell>
                           <Chip
                             label={inf.estado}
-                            color={ESTADO_INFORME_COLOR[inf.estado] ?? "default"}
+                            color={
+                              ESTADO_INFORME_COLOR[inf.estado] ?? "default"
+                            }
                             size="small"
-                            sx={{ textTransform: "capitalize", fontSize: "0.7rem" }}
+                            sx={{
+                              textTransform: "capitalize",
+                              fontSize: "0.7rem",
+                            }}
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption">{fmtDate(inf.fecha_generacion)}</Typography>
+                          <Typography variant="caption">
+                            {fmtDate(inf.fecha_generacion)}
+                          </Typography>
                         </TableCell>
                         <TableCell>
                           {inf.archivo ? (
@@ -1011,7 +1350,9 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                 rowsPerPage={10}
                 rowsPerPageOptions={[10]}
                 onPageChange={(_, p) => setPage(p)}
-                labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}–${to} de ${count}`
+                }
               />
             )}
           </TableContainer>
@@ -1024,13 +1365,12 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
 // ─── Vista: DIRECTOR DE PROGRAMA / ADMINISTRADOR ─────────────────────────────
 
 function VistaAdministrador({ token }: { token: string }) {
-  const { data: dashboard, loading: loadingDash } = useApi<DashboardIndicadores>(
-    "/core/dashboard/?scope=administrador",
-    token
-  );
+  const { data: dashboard, loading: loadingDash } =
+    useApi<DashboardIndicadores>("/core/dashboard/?scope=administrador", token);
 
-  const { data: semillerosData, loading: loadingSemilleros } =
-    useApi<PaginatedResponse<ReporteSemillero>>("/reportes/semilleros/", token);
+  const { data: semillerosData, loading: loadingSemilleros } = useApi<
+    PaginatedResponse<ReporteSemillero>
+  >("/reportes/semilleros/", token);
 
   return (
     <Stack spacing={3}>
@@ -1039,7 +1379,8 @@ function VistaAdministrador({ token }: { token: string }) {
           Indicadores institucionales
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Métricas globales de todos los semilleros, grupos y proyectos de investigación.
+          Métricas globales de todos los semilleros, grupos y proyectos de
+          investigación.
         </Typography>
       </Box>
 
@@ -1051,12 +1392,52 @@ function VistaAdministrador({ token }: { token: string }) {
           gap: 2,
         }}
       >
-        <IndicadorCard icon={<ScienceIcon fontSize="small" />} label="Proyectos activos" value={dashboard?.proyectos_activos ?? "—"} color="#C8102E" loading={loadingDash} />
-        <IndicadorCard icon={<GroupsIcon fontSize="small" />} label="Estudiantes activos" value={dashboard?.estudiantes_activos ?? "—"} color="#2D6E3C" loading={loadingDash} />
-        <IndicadorCard icon={<AssignmentIcon fontSize="small" />} label="Producción académica" value={dashboard?.produccion_academica ?? "—"} color="#3B5BDB" loading={loadingDash} />
-        <IndicadorCard icon={<CheckCircleIcon fontSize="small" />} label="Actividades completadas" value={dashboard?.actividades_completadas ?? "—"} color="#E87722" loading={loadingDash} />
-        <IndicadorCard icon={<TrendingUpIcon fontSize="small" />} label="Cumplimiento" value={dashboard?.cumplimiento_semestral !== undefined ? fmtPct(dashboard.cumplimiento_semestral) : "—"} color="#0F6E56" loading={loadingDash} />
-        <IndicadorCard icon={<BarChartIcon fontSize="small" />} label="Evaluaciones" value={dashboard?.evaluaciones_registradas ?? "—"} color="#534AB7" loading={loadingDash} />
+        <IndicadorCard
+          icon={<ScienceIcon fontSize="small" />}
+          label="Proyectos activos"
+          value={dashboard?.proyectos_activos ?? "—"}
+          color="#C8102E"
+          loading={loadingDash}
+        />
+        <IndicadorCard
+          icon={<GroupsIcon fontSize="small" />}
+          label="Estudiantes activos"
+          value={dashboard?.estudiantes_activos ?? "—"}
+          color="#2D6E3C"
+          loading={loadingDash}
+        />
+        <IndicadorCard
+          icon={<AssignmentIcon fontSize="small" />}
+          label="Producción académica"
+          value={dashboard?.produccion_academica ?? "—"}
+          color="#3B5BDB"
+          loading={loadingDash}
+        />
+        <IndicadorCard
+          icon={<CheckCircleIcon fontSize="small" />}
+          label="Actividades completadas"
+          value={dashboard?.actividades_completadas ?? "—"}
+          color="#E87722"
+          loading={loadingDash}
+        />
+        <IndicadorCard
+          icon={<TrendingUpIcon fontSize="small" />}
+          label="Cumplimiento"
+          value={
+            dashboard?.cumplimiento_semestral !== undefined
+              ? fmtPct(dashboard.cumplimiento_semestral)
+              : "—"
+          }
+          color="#0F6E56"
+          loading={loadingDash}
+        />
+        <IndicadorCard
+          icon={<BarChartIcon fontSize="small" />}
+          label="Evaluaciones"
+          value={dashboard?.evaluaciones_registradas ?? "—"}
+          color="#534AB7"
+          loading={loadingDash}
+        />
       </Box>
 
       <Divider />
@@ -1067,17 +1448,30 @@ function VistaAdministrador({ token }: { token: string }) {
           Resumen por semillero
         </Typography>
         <TableContainer
-          sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}
+          sx={{
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
         >
           <Table size="small">
             <TableHead sx={{ bgcolor: "background.default" }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Semillero</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Director</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="center">Proyectos totales</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="center">Proyectos activos</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="center">Matrículas</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="center">Producciones</TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">
+                  Proyectos totales
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">
+                  Proyectos activos
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">
+                  Matrículas
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">
+                  Producciones
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -1085,25 +1479,39 @@ function VistaAdministrador({ token }: { token: string }) {
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       {Array.from({ length: 6 }).map((__, j) => (
-                        <TableCell key={j}><Skeleton /></TableCell>
+                        <TableCell key={j}>
+                          <Skeleton />
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))
                 : semillerosData?.results.map((s) => (
                     <TableRow key={s.id} hover>
                       <TableCell>
-                        <Typography variant="body2" fontWeight={600}>{s.nombre}</Typography>
-                        <Typography variant="caption" color="text.secondary">{s.codigo}</Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {s.nombre}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {s.codigo}
+                        </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption">{s.director?.nombre_completo ?? "—"}</Typography>
+                        <Typography variant="caption">
+                          {s.director?.nombre_completo ?? "—"}
+                        </Typography>
                       </TableCell>
                       <TableCell align="center">{s.total_proyectos}</TableCell>
                       <TableCell align="center">
-                        <Chip label={s.proyectos_activos} color="success" size="small" />
+                        <Chip
+                          label={s.proyectos_activos}
+                          color="success"
+                          size="small"
+                        />
                       </TableCell>
                       <TableCell align="center">{s.total_matriculas}</TableCell>
-                      <TableCell align="center">{s.total_producciones}</TableCell>
+                      <TableCell align="center">
+                        {s.total_producciones}
+                      </TableCell>
                     </TableRow>
                   ))}
               {!loadingSemilleros && !semillerosData?.results.length && (

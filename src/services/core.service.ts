@@ -21,28 +21,36 @@ function extractList<T>(data: T[] | PaginatedResponse<T>): T[] {
 export const lineasService = {
   list: () =>
     api
-      .get<LineaInvestigacion[] | PaginatedResponse<LineaInvestigacion>>(
-        "/core/lineas-investigacion/",
-      )
+      .get<
+        LineaInvestigacion[] | PaginatedResponse<LineaInvestigacion>
+      >("/core/lineas-investigacion/")
       .then((r) => extractList(r.data)),
   create: (data: LineaInvestigacionCreate) =>
-    api.post<LineaInvestigacion>("/core/lineas-investigacion/", data).then((r) => r.data),
+    api
+      .post<LineaInvestigacion>("/core/lineas-investigacion/", data)
+      .then((r) => r.data),
   update: (id: number, data: Partial<LineaInvestigacionCreate>) =>
-    api.patch<LineaInvestigacion>(`/core/lineas-investigacion/${id}/`, data).then((r) => r.data),
+    api
+      .patch<LineaInvestigacion>(`/core/lineas-investigacion/${id}/`, data)
+      .then((r) => r.data),
   remove: (id: number) => api.delete(`/core/lineas-investigacion/${id}/`),
 };
 
 export const gruposService = {
   list: () =>
     api
-      .get<GrupoInvestigacion[] | PaginatedResponse<GrupoInvestigacion>>(
-        "/core/grupos-investigacion/",
-      )
+      .get<
+        GrupoInvestigacion[] | PaginatedResponse<GrupoInvestigacion>
+      >("/core/grupos-investigacion/")
       .then((r) => extractList(r.data)),
   create: (data: GrupoInvestigacionCreate) =>
-    api.post<GrupoInvestigacion>("/core/grupos-investigacion/", data).then((r) => r.data),
+    api
+      .post<GrupoInvestigacion>("/core/grupos-investigacion/", data)
+      .then((r) => r.data),
   update: (id: number, data: Partial<GrupoInvestigacionCreate>) =>
-    api.patch<GrupoInvestigacion>(`/core/grupos-investigacion/${id}/`, data).then((r) => r.data),
+    api
+      .patch<GrupoInvestigacion>(`/core/grupos-investigacion/${id}/`, data)
+      .then((r) => r.data),
   remove: (id: number) => api.delete(`/core/grupos-investigacion/${id}/`),
 };
 
@@ -69,8 +77,25 @@ export const semillerosService = {
   getAval: (id: number) =>
     api.get<SemilleroAval>(`/core/semilleros/${id}/aval/`).then((r) => r.data),
 
-  updateAval: (id: number, data: SemilleroAval) =>
-    api.patch<SemilleroAval>(`/core/semilleros/${id}/aval/`, data).then((r) => r.data),
+  updateAval: (id: number, data: SemilleroAval, archivoAval?: File) => {
+    const formData = new FormData();
+    // Campos de texto — solo se envían si tienen valor
+    if (data.estado_aval) formData.append("estado_aval", data.estado_aval);
+    if (data.tipo_documento)
+      formData.append("tipo_documento", data.tipo_documento);
+    if (data.numero_acta) formData.append("numero_acta", data.numero_acta);
+    if (data.observaciones)
+      formData.append("observaciones", data.observaciones);
+    if (data.fecha_aprobacion)
+      formData.append("fecha_aprobacion", data.fecha_aprobacion);
+    // Archivo (opcional)
+    if (archivoAval) formData.append("archivo_aval", archivoAval);
+    return api
+      .patch<SemilleroAval>(`/core/semilleros/${id}/aval/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

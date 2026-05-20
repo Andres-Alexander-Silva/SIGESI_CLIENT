@@ -65,7 +65,7 @@ interface UseDashboardOptions {
 
 export function useDashboard({ token, semestre, scope }: UseDashboardOptions) {
   return useFetch<DashboardIndicadores>(
-    () => reportesService.getDashboard(token, { semestre, scope }),
+    () => reportesService.getDashboard({ semestre, scope }),
     [token, semestre, scope]
   );
 }
@@ -86,7 +86,7 @@ export function useReporteProyectos({
   page = 1,
 }: UseReporteProyectosOptions) {
   return useFetch<PaginatedResponse<ReporteProyecto>>(
-    () => reportesService.getReporteProyectos(token, { search, ordering, page }),
+    () => reportesService.getReporteProyectos({ search, ordering, page }),
     [token, search, ordering, page]
   );
 }
@@ -105,7 +105,7 @@ export function useReporteSemilleros({
   page = 1,
 }: UseReporteSemillerosOptions) {
   return useFetch<PaginatedResponse<ReporteSemillero>>(
-    () => reportesService.getReporteSemilleros(token, { search, page }),
+    () => reportesService.getReporteSemilleros({ search, page }),
     [token, search, page]
   );
 }
@@ -118,7 +118,7 @@ interface UseInformesOptions extends FiltrosReportes {
 
 export function useInformes({ token, ...filtros }: UseInformesOptions) {
   return useFetch<PaginatedResponse<Informe>>(
-    () => reportesService.getInformes(token, filtros),
+    () => reportesService.getInformes(filtros),
     [token, filtros.semillero, filtros.tipo, filtros.semestre, filtros.estado, filtros.search, filtros.page]
   );
 }
@@ -164,12 +164,12 @@ export function useInformeMutation(token: string): UseInformeMutationResult {
   );
 
   const crearInforme = useCallback(
-    (data: InformeCreateInput) => run(() => reportesService.createInforme(token, data)),
+    (data: InformeCreateInput) => run(() => reportesService.createInforme(data)),
     [token, run]
   );
 
   const generarInforme = useCallback(
-    (data: InformeCreateInput) => run(() => reportesService.generarInforme(token, data)),
+    (data: InformeCreateInput) => run(() => reportesService.generarInforme(data)),
     [token, run]
   );
 
@@ -187,7 +187,7 @@ export function useExportarExcel(token: string) {
       setLoading(true);
       setError(null);
       try {
-        await reportesService.exportarExcel(token, filtros);
+        await reportesService.exportarExcel(filtros);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "Error al exportar");
       } finally {

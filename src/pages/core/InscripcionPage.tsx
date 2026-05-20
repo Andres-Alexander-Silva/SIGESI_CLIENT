@@ -59,6 +59,8 @@ interface Inscripcion {
   estudiante_nombre?: string;
   semestre: string;
   fecha_inscripcion?: string;
+  estado?: "activa" | "inactiva" | "retirado";
+  // legacy fallback
   is_active?: boolean;
 }
 
@@ -68,9 +70,9 @@ interface Inscripcion {
 export default function InscripcionesPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const { user } = useAuth();
+  const { user, activeRole } = useAuth();
 
-  const currentRole = user?.roles?.[0] ?? "";
+  const currentRole = activeRole ?? user?.roles?.[0] ?? "";
   const isStudent = currentRole === "estudiante";
   const isDirector = currentRole === "director_semillero";
   const isAdmin =
@@ -187,7 +189,7 @@ export default function InscripcionesPage() {
   const isInscrito = (semilleroId: number) => !!inscripcionMap[semilleroId];
 
   const misInscripciones = inscripciones.filter((i) =>
-    isStudent ? true : i.is_active !== false,
+    isStudent ? true : i.estado !== "retirado",
   );
 
   // Filtros
@@ -293,7 +295,7 @@ export default function InscripcionesPage() {
               Inscripciones
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Rol actual: <strong>{user?.roles?.join(", ")}</strong>
+              Rol actual: <strong>{currentRole}</strong>
             </Typography>
           </Box>
         </Box>
@@ -655,10 +657,18 @@ export default function InscripcionesPage() {
                           <TableCell align="center">
                             <Chip
                               label={
-                                insc.is_active !== false ? "Activa" : "Inactiva"
+                                insc.estado === "activa"
+                                  ? "Activa"
+                                  : insc.estado === "retirado"
+                                    ? "Retirado"
+                                    : "Inactiva"
                               }
                               color={
-                                insc.is_active !== false ? "success" : "default"
+                                insc.estado === "activa"
+                                  ? "success"
+                                  : insc.estado === "retirado"
+                                    ? "error"
+                                    : "default"
                               }
                               size="small"
                             />

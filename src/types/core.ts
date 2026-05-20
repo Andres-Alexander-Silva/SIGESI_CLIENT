@@ -2,6 +2,8 @@ export interface LineaInvestigacion {
   id: number;
   nombre: string;
   descripcion?: string;
+  mision?: string;
+  vision?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -10,6 +12,8 @@ export interface LineaInvestigacion {
 export interface LineaInvestigacionCreate {
   nombre: string;
   descripcion?: string;
+  mision?: string;
+  vision?: string;
   is_active?: boolean;
 }
 
@@ -157,4 +161,95 @@ export interface ProyectoCreate {
 
 export interface ProyectoChangeState {
   estado: EstadoProyecto;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Programas Académicos
+// ─────────────────────────────────────────────────────────────────────────────
+export interface ProgramaAcademico {
+  id: number;
+  nombre: string;
+  codigo: string;
+  facultad: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramaAcademicoCreate {
+  nombre: string;
+  codigo: string;
+  facultad?: string;
+  is_active?: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cronograma de Proyecto
+// ─────────────────────────────────────────────────────────────────────────────
+export type EstadoCronograma =
+  | "pendiente"
+  | "en_progreso"
+  | "completada"
+  | "cancelada"
+  | "atrasada";
+
+export interface CronogramaProyecto {
+  id: number;
+  proyecto: number;
+  proyecto_titulo: string;
+  actividad: string;
+  descripcion_actividad: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  fecha_entrega: string;
+  estado_actividad: EstadoCronograma;
+  archivo_cronograma?: string | null;
+  observaciones: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CronogramaProyectoCreate {
+  proyecto: number;
+  actividad: string;
+  descripcion_actividad: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  fecha_entrega: string;
+  estado_actividad?: EstadoCronograma;
+  archivo_cronograma?: File | null;
+  observaciones?: string;
+}
+
+export interface CronogramaCumplimiento {
+  proyecto_id: number;
+  total_actividades: number;
+  completadas: number;
+  porcentaje_cumplimiento: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Evaluación de Proyecto
+// ─────────────────────────────────────────────────────────────────────────────
+export interface EvaluacionProyecto {
+  id: number;
+  proyecto: number;
+  evaluador: number;
+  calificacion: number;
+  estado_proyecto: EstadoProyecto;
+  observaciones: string;
+  recomendaciones: string;
+  created_at: string;
+  updated_at: string;
+  // Campos calculados por el serializer (nombres)
+  proyecto_titulo?: string;
+  evaluador_nombre?: string;
+}
+
+export interface EvaluacionProyectoCreate {
+  proyecto: number;
+  calificacion: number;
+  estado_proyecto: EstadoProyecto;
+  observaciones: string;
+  recomendaciones?: string;
 }

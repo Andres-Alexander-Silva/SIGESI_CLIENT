@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { usePermissions } from '@/context/PermissionsContext';
-import { getMenuIcon, getUrlIcon } from '@/utils/iconMap';
+import { getMenuIcon, getUrlIcon, getSidebarIcon } from '@/utils/iconMap';
 import { Menu } from '@/types';
 
 const DRAWER_WIDTH_OPEN   = 260;
@@ -118,7 +118,7 @@ function SidebarMenuItem({ menu, sidebarOpen, depth = 0, onNavigate }: MenuItemP
                 fontSize: depth > 0 ? '1.1rem' : '1.25rem',
               }}
             >
-              {depth > 0 ? getUrlIcon(menu.url) : getMenuIcon(menu.icono)}
+              {getSidebarIcon(menu.icono, menu.url)}
             </ListItemIcon>
 
             {sidebarOpen && (

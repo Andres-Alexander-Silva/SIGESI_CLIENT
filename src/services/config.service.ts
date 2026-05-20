@@ -45,6 +45,21 @@ export const usersService = {
       })
       .then((r) => r.data);
   },
+
+  downloadFormato: async () => {
+    const response = await api.get("/config/users/bulk-upload/formato/", {
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "formato_carga_masiva_usuarios.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
 };
 
 // ── Menús ─────────────────────────────────────────────────────────────────────

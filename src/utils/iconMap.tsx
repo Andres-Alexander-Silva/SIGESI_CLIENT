@@ -29,6 +29,8 @@ import {
   ManageAccountsOutlined,
   LockOutlined,
   HelpOutlined,
+  CalendarMonthOutlined,
+  RateReviewOutlined,
 } from '@mui/icons-material';
 import { FaChartLine, FaTasks } from 'react-icons/fa';
 
@@ -182,6 +184,11 @@ const MAP: Record<string, ReactElement> = {
   miembros: <PeopleOutlined />,
   usersgear: <ManageAccountsOutlined />, // fa-users-gear
   usergear: <ManageAccountsOutlined />, // fa-user-gear
+  programasacademicos: <SchoolOutlined />,
+  cronogramaproyecto: <CalendarMonthOutlined />,
+  evaluacionesproyecto: <RateReviewOutlined />,
+  cronograma: <CalendarMonthOutlined />,
+  evaluaciones: <RateReviewOutlined />,
 };
 
 /**
@@ -200,6 +207,9 @@ const URL_MAP: Record<string, ReactElement> = {
   menus:        <MenuOutlined />,
   opciones:     <CheckBoxOutlined />,
   permisos:     <SecurityOutlined />,
+  programas_academicos: <SchoolOutlined />,
+  cronograma_proyecto: <CalendarMonthOutlined />,
+  evaluaciones_proyecto: <RateReviewOutlined />,
 };
 
 /**
@@ -230,4 +240,27 @@ export function getMenuIcon(iconName: string | undefined): ReactElement {
   const key = stripped.toLowerCase().replace(/[-_\s]/g, '');
 
   return MAP[key] ?? <FolderOutlined />;
+}
+
+/**
+ * Resuelve el icono del sidebar intentando primero por URL para priorizar
+ * nuestras rutas conocidas, y luego por el nombre de icono devuelto por el backend.
+ */
+export function getSidebarIcon(icono: string | undefined, url: string | undefined): ReactElement {
+  if (url) {
+    const segment = url.replace(/\/$/, '').split('/').pop()?.toLowerCase() ?? '';
+    if (URL_MAP[segment]) {
+      return URL_MAP[segment];
+    }
+  }
+  if (icono) {
+    const stripped = icono
+      .replace(/^fa[srblx]?\s+/i, '')
+      .replace(/^fa-/i, '');
+    const key = stripped.toLowerCase().replace(/[-_\s]/g, '');
+    if (MAP[key]) {
+      return MAP[key];
+    }
+  }
+  return <FolderOutlined />;
 }

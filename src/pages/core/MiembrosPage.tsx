@@ -24,10 +24,6 @@ import {
   TablePagination,
   Autocomplete,
   Avatar,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Divider,
   LinearProgress,
   List,
@@ -67,7 +63,6 @@ import api from "@/services/api";
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos locales
 // ─────────────────────────────────────────────────────────────────────────────
-type RolSemillero = "miembro" | "lider_estudiantil" | "monitor" | "colaborador";
 
 interface Miembro {
   id: number; // ID de la inscripción
@@ -79,10 +74,8 @@ interface Miembro {
   semestre: string;
   estado: "activa" | "inactiva" | "retirado";
   fecha_inscripcion?: string;
-  // campos extras que podríamos tener
   email?: string;
   programa?: string;
-  rol_semillero?: RolSemillero;
 }
 
 interface BulkResult {
@@ -92,61 +85,50 @@ interface BulkResult {
   detalle: { fila: number; mensaje: string; tipo: "ok" | "error" | "warn" }[];
 }
 
-const ROL_LABELS: Record<RolSemillero, string> = {
-  miembro: "Miembro",
-  lider_estudiantil: "Líder Estudiantil",
-  monitor: "Monitor",
-  colaborador: "Colaborador",
-};
-
-const ROL_COLORS: Record<
-  RolSemillero,
-  "default" | "primary" | "success" | "warning"
-> = {
-  miembro: "default",
-  lider_estudiantil: "primary",
-  monitor: "success",
-  colaborador: "warning",
-};
-
 const CURRENT_SEMESTER = "2026-1";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Plantilla Excel descargable (genera un CSV simple)
+// Descarga la plantilla real desde el endpoint del swagger
+// GET /config/users/bulk-upload/formato/
 // ─────────────────────────────────────────────────────────────────────────────
-function downloadTemplate() {
-  const headers = [
-    "Username",
-    "Cédula",
-    "Nombres",
-    "Apellidos",
-    "Email Institucional",
-    "Correo Personal",
-    "Teléfono",
-    "Roles",
-    "Código",
-    "Programa Académico",
-  ];
-  const example = [
-    "jperez",
-    "1234567890",
-    "Juan",
-    "Pérez",
-    "jperez@ufps.edu.co",
-    "jperez@gmail.com",
-    "3001234567",
-    "estudiante",
-    "123456",
-    "1",
-  ];
-  const csv = [headers.join(","), example.join(",")].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "plantilla_carga_masiva.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+async function downloadTemplate() {
+  try {
+    await usersService.downloadFormato();
+  } catch {
+    // Fallback: si el endpoint falla, generar CSV local
+    const headers = [
+      "Username",
+      "Cédula",
+      "Nombres",
+      "Apellidos",
+      "Email Institucional",
+      "Correo Personal",
+      "Teléfono",
+      "Roles",
+      "Código",
+      "Programa Académico",
+    ];
+    const example = [
+      "jperez",
+      "1234567890",
+      "Juan",
+      "Pérez",
+      "jperez@ufps.edu.co",
+      "jperez@gmail.com",
+      "3001234567",
+      "estudiante",
+      "123456",
+      "1",
+    ];
+    const csv = [headers.join(","), example.join(",")].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "plantilla_carga_masiva.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,7 +173,6 @@ export default function MiembrosPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMiembro, setEditingMiembro] = useState<Miembro | null>(null);
   const [formEstudiante, setFormEstudiante] = useState<UserAdmin | null>(null);
-  const [formRol, setFormRol] = useState<RolSemillero>("miembro");
   const [formSemestre, setFormSemestre] = useState(CURRENT_SEMESTER);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -321,7 +302,6 @@ export default function MiembrosPage() {
   const openAdd = () => {
     setEditingMiembro(null);
     setFormEstudiante(null);
-    setFormRol("miembro");
     setFormSemestre(CURRENT_SEMESTER);
     setFormError("");
     setDialogOpen(true);
@@ -331,7 +311,6 @@ export default function MiembrosPage() {
     setEditingMiembro(m);
     const est = estudiantes.find((e) => e.id === m.estudiante) ?? null;
     setFormEstudiante(est);
-    setFormRol((m.rol_semillero as RolSemillero) ?? "miembro");
     setFormSemestre(m.semestre);
     setFormError("");
     setDialogOpen(true);
@@ -696,9 +675,6 @@ export default function MiembrosPage() {
                       <strong>Código</strong>
                     </TableCell>
                     <TableCell align="center">
-                      <strong>Rol en semillero</strong>
-                    </TableCell>
-                    <TableCell align="center">
                       <strong>Semestre</strong>
                     </TableCell>
                     <TableCell align="center">
@@ -717,14 +693,14 @@ export default function MiembrosPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                         <CircularProgress size={32} />
                       </TableCell>
                     </TableRow>
                   ) : paginated.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={7}
                         align="center"
                         sx={{ py: 6, color: theme.palette.text.disabled }}
                       >
@@ -747,8 +723,6 @@ export default function MiembrosPage() {
                       const email = est?.email || est?.correo_personal || "—";
                       const codigo =
                         m.estudiante_codigo || est?.codigo_estudiantil || "—";
-                      const rol =
-                        (m.rol_semillero as RolSemillero) ?? "miembro";
 
                       return (
                         <TableRow key={m.id} hover>
@@ -794,14 +768,6 @@ export default function MiembrosPage() {
                             sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}
                           >
                             {codigo}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={ROL_LABELS[rol] ?? rol}
-                              color={ROL_COLORS[rol] ?? "default"}
-                              size="small"
-                              variant="outlined"
-                            />
                           </TableCell>
                           <TableCell align="center">
                             <Chip label={m.semestre} size="small" />
@@ -976,22 +942,6 @@ export default function MiembrosPage() {
                 }}
               />
             )}
-
-            {/* Rol en el semillero */}
-            <FormControl size="small" fullWidth>
-              <InputLabel>Rol en el semillero</InputLabel>
-              <Select
-                value={formRol}
-                label="Rol en el semillero"
-                onChange={(e) => setFormRol(e.target.value as RolSemillero)}
-              >
-                {Object.entries(ROL_LABELS).map(([val, label]) => (
-                  <MenuItem key={val} value={val}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
 
             {/* Semestre */}
             <TextField

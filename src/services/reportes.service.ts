@@ -1,7 +1,8 @@
 // src/services/reportes.service.ts
 // Servicio de API para el módulo de Reportes — SIGESI
+// Refactorizado para usar el cliente axios centralizado (api.ts)
 
-const API_BASE = "https://sigesi-api.onrender.com/api/v1";
+import api from "./api";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -92,35 +93,14 @@ export interface FiltrosReportes {
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
-function buildHeaders(token: string): HeadersInit {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-function buildQuery(
+function buildParams(
   params: Record<string, string | number | undefined>,
-): string {
-  const q = new URLSearchParams();
+): Record<string, string> {
+  const result: Record<string, string> = {};
   Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== "" && v !== null) q.set(k, String(v));
+    if (v !== undefined && v !== "" && v !== null) result[k] = String(v);
   });
-  const str = q.toString();
-  return str ? `?${str}` : "";
-}
-
-async function handleResponse<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    let msg = `Error ${res.status}: ${res.statusText}`;
-    try {
-      const body = await res.json();
-      if (body.detail) msg = body.detail;
-      else if (typeof body === "object") msg = JSON.stringify(body);
-    } catch {}
-    throw new Error(msg);
-  }
-  return res.json();
+  return result;
 }
 
 // ─── Servicio ─────────────────────────────────────────────────────────────────
@@ -129,151 +109,122 @@ export const reportesService = {
   // ── Dashboard ──────────────────────────────────────────────────────────────
 
   /** GET /core/dashboard/ — indicadores del dashboard */
-  getDashboard(
-    token: string,
-    params?: {
-      semestre?: string;
-      scope?: "administrador" | "grupo" | "semillero";
-    },
-  ): Promise<DashboardIndicadores> {
-    const q = buildQuery({ semestre: params?.semestre, scope: params?.scope });
-    return fetch(`${API_BASE}/core/dashboard/${q}`, {
-      headers: buildHeaders(token),
-    }).then((r) => handleResponse<DashboardIndicadores>(r));
+  async getDashboard(params?: {
+    semestre?: string;
+    scope?: "administrador" | "grupo" | "semillero";
+  }): Promise<DashboardIndicadores> {
+    const { data } = await api.get<DashboardIndicadores>("/core/dashboard/", {
+      params: buildParams({ semestre: params?.semestre, scope: params?.scope }),
+    });
+    return data;
   },
 
   // ── Reportes de proyectos ──────────────────────────────────────────────────
 
   /** GET /reportes/proyectos/ — reporte consolidado de proyectos */
-  getReporteProyectos(
-    token: string,
-    filtros?: { search?: string; ordering?: string; page?: number },
-  ): Promise<PaginatedResponse<ReporteProyecto>> {
-    const q = buildQuery({
-      search: filtros?.search,
-      ordering: filtros?.ordering,
-      page: filtros?.page,
-    });
-    return fetch(`${API_BASE}/reportes/proyectos/${q}`, {
-      headers: buildHeaders(token),
-    }).then((r) => handleResponse<PaginatedResponse<ReporteProyecto>>(r));
+  async getReporteProyectos(filtros?: {
+    search?: string;
+    ordering?: string;
+    page?: number;
+  }): Promise<PaginatedResponse<ReporteProyecto>> {
+    const { data } = await api.get<PaginatedResponse<ReporteProyecto>>(
+      "/reportes/proyectos/",
+      {
+        params: buildParams({
+          search: filtros?.search,
+          ordering: filtros?.ordering,
+          page: filtros?.page,
+        }),
+      },
+    );
+    return data;
   },
 
   // ── Reportes de semilleros ─────────────────────────────────────────────────
 
   /** GET /reportes/semilleros/ — reporte consolidado de semilleros */
-  getReporteSemilleros(
-    token: string,
-    filtros?: { search?: string; page?: number },
-  ): Promise<PaginatedResponse<ReporteSemillero>> {
-    const q = buildQuery({ search: filtros?.search, page: filtros?.page });
-    return fetch(`${API_BASE}/reportes/semilleros/${q}`, {
-      headers: buildHeaders(token),
-    }).then((r) => handleResponse<PaginatedResponse<ReporteSemillero>>(r));
+  async getReporteSemilleros(filtros?: {
+    search?: string;
+    page?: number;
+  }): Promise<PaginatedResponse<ReporteSemillero>> {
+    const { data } = await api.get<PaginatedResponse<ReporteSemillero>>(
+      "/reportes/semilleros/",
+      {
+        params: buildParams({ search: filtros?.search, page: filtros?.page }),
+      },
+    );
+    return data;
   },
 
   // ── Informes ───────────────────────────────────────────────────────────────
 
   /** GET /reportes/ — lista de informes */
-  getInformes(
-    token: string,
+  async getInformes(
     filtros?: FiltrosReportes,
   ): Promise<PaginatedResponse<Informe>> {
-    const q = buildQuery({
-      semillero: filtros?.semillero,
-      tipo: filtros?.tipo,
-      semestre: filtros?.semestre,
-      estado: filtros?.estado,
-      search: filtros?.search,
-      ordering: filtros?.ordering,
-      page: filtros?.page,
+    const { data } = await api.get<PaginatedResponse<Informe>>("/reportes/", {
+      params: buildParams({
+        semillero: filtros?.semillero,
+        tipo: filtros?.tipo,
+        semestre: filtros?.semestre,
+        estado: filtros?.estado,
+        search: filtros?.search,
+        ordering: filtros?.ordering,
+        page: filtros?.page,
+      }),
     });
-    return fetch(`${API_BASE}/reportes/${q}`, {
-      headers: buildHeaders(token),
-    }).then((r) => handleResponse<PaginatedResponse<Informe>>(r));
+    return data;
   },
 
   /** GET /reportes/{id}/ — detalle de un informe */
-  getInforme(token: string, id: number): Promise<Informe> {
-    return fetch(`${API_BASE}/reportes/${id}/`, {
-      headers: buildHeaders(token),
-    }).then((r) => handleResponse<Informe>(r));
+  async getInforme(id: number): Promise<Informe> {
+    const { data } = await api.get<Informe>(`/reportes/${id}/`);
+    return data;
   },
 
   /** POST /reportes/ — crear informe */
-  createInforme(token: string, data: InformeCreateInput): Promise<Informe> {
-    return fetch(`${API_BASE}/reportes/`, {
-      method: "POST",
-      headers: buildHeaders(token),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<Informe>(r));
+  async createInforme(payload: InformeCreateInput): Promise<Informe> {
+    const { data } = await api.post<Informe>("/reportes/", payload);
+    return data;
   },
 
   /** POST /reportes/generar/ — generar informe automático */
-  generarInforme(token: string, data: InformeCreateInput): Promise<Informe> {
-    return fetch(`${API_BASE}/reportes/generar/`, {
-      method: "POST",
-      headers: buildHeaders(token),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<Informe>(r));
+  async generarInforme(payload: InformeCreateInput): Promise<Informe> {
+    const { data } = await api.post<Informe>("/reportes/generar/", payload);
+    return data;
   },
 
   /** PATCH /reportes/{id}/ — actualizar informe parcialmente */
-  updateInforme(
-    token: string,
+  async updateInforme(
     id: number,
-    data: Partial<InformeCreateInput>,
+    payload: Partial<InformeCreateInput>,
   ): Promise<Informe> {
-    return fetch(`${API_BASE}/reportes/${id}/`, {
-      method: "PATCH",
-      headers: buildHeaders(token),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<Informe>(r));
+    const { data } = await api.patch<Informe>(`/reportes/${id}/`, payload);
+    return data;
   },
 
   /** DELETE /reportes/{id}/ — eliminar informe */
-  deleteInforme(token: string, id: number): Promise<void> {
-    return fetch(`${API_BASE}/reportes/${id}/`, {
-      method: "DELETE",
-      headers: buildHeaders(token),
-    }).then((r) => {
-      if (!r.ok) throw new Error(`Error ${r.status}: ${r.statusText}`);
-    });
+  async deleteInforme(id: number): Promise<void> {
+    await api.delete(`/reportes/${id}/`);
   },
 
-  // ── Exportación ────────────────────────────────────────────────────────────
+  // ── Exportación de informes ────────────────────────────────────────────────
 
   /**
-   * Construye la URL de exportación Excel para abrir en nueva pestaña.
-   * GET /reportes/exportar/
+   * Descarga el Excel como blob vía axios (incluye token automáticamente).
    */
-  getExportUrl(filtros?: FiltrosReportes): string {
-    const q = buildQuery({
-      semillero: filtros?.semillero,
-      tipo: filtros?.tipo,
-      semestre: filtros?.semestre,
-      estado: filtros?.estado,
-      search: filtros?.search,
+  async exportarExcel(filtros?: FiltrosReportes): Promise<void> {
+    const response = await api.get("/reportes/exportar/", {
+      params: buildParams({
+        semillero: filtros?.semillero,
+        tipo: filtros?.tipo,
+        semestre: filtros?.semestre,
+        estado: filtros?.estado,
+        search: filtros?.search,
+      }),
+      responseType: "blob",
     });
-    return `${API_BASE}/reportes/exportar/${q}`;
-  },
-
-  /**
-   * Descarga el Excel como blob (útil si el endpoint requiere auth en el header).
-   */
-  async exportarExcel(token: string, filtros?: FiltrosReportes): Promise<void> {
-    const q = buildQuery({
-      semillero: filtros?.semillero,
-      tipo: filtros?.tipo,
-      semestre: filtros?.semestre,
-      estado: filtros?.estado,
-      search: filtros?.search,
-    });
-    const res = await fetch(`${API_BASE}/reportes/exportar/${q}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error(`Error al exportar: ${res.status}`);
-    const blob = await res.blob();
+    const blob = new Blob([response.data]);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

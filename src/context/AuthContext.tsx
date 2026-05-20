@@ -69,12 +69,15 @@ export function AuthProvider({ children, navigate }: AuthProviderProps) {
     setActiveRole(null);
     authService.clearActiveRole();
 
-    if (roles && roles.length > 1) {
+    // Unificar: usar roles del resultado o, como fallback, los del user (ya mapeados en auth.service)
+    const effectiveRoles = roles?.length ? roles : (user.roles ?? []);
+
+    if (effectiveRoles.length > 1) {
       // Múltiples roles → pantalla de selección
       navigate("/select-role", { replace: true });
-    } else if (roles && roles.length === 1) {
+    } else if (effectiveRoles.length === 1) {
       // Un único rol → seleccionarlo automáticamente y pasar al dashboard
-      const singleRole = roles[0] as UserRole;
+      const singleRole = effectiveRoles[0] as UserRole;
       authService.storeActiveRole(singleRole);
       setActiveRole(singleRole);
       navigate("/dashboard", { replace: true });

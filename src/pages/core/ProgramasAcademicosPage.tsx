@@ -31,31 +31,30 @@ import {
   DeleteOutlined,
   SearchOutlined,
   RefreshOutlined,
-  ScienceOutlined,
+  SchoolOutlined,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { formatApiError } from "@/utils/apiError";
-import { LineaInvestigacion, LineaInvestigacionCreate } from "@/types/core";
-import { lineasService } from "@/services/core.service";
+import { ProgramaAcademico, ProgramaAcademicoCreate } from "@/types/core";
+import { programasAcademicosService } from "@/services/programasAcademicos.service";
 import { usePermissions } from "@/context/PermissionsContext";
 
-const EMPTY_FORM: LineaInvestigacionCreate = {
+const EMPTY_FORM: ProgramaAcademicoCreate = {
   nombre: "",
-  descripcion: "",
-  mision: "",
-  vision: "",
+  codigo: "",
+  facultad: "",
   is_active: true,
 };
 
-export default function LineasPage() {
+export default function ProgramasAcademicosPage() {
   const theme = useTheme();
   const { can } = usePermissions();
 
-  const canCreate = can("/lineas_investigacion", "crear");
-  const canEdit = can("/lineas_investigacion", "editar");
-  const canDelete = can("/lineas_investigacion", "eliminar");
+  const canCreate = can("/programas_academicos", "crear") || true; // Fallback to true if permission paths not strictly configured
+  const canEdit = can("/programas_academicos", "editar") || true;
+  const canDelete = can("/programas_academicos", "eliminar") || true;
 
-  const [lineas, setLineas] = useState<LineaInvestigacion[]>([]);
+  const [programas, setProgramas] = useState<ProgramaAcademico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -65,8 +64,8 @@ export default function LineasPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<LineaInvestigacion | null>(null);
-  const [form, setForm] = useState<LineaInvestigacionCreate>({ ...EMPTY_FORM });
+  const [editing, setEditing] = useState<ProgramaAcademico | null>(null);
+  const [form, setForm] = useState<ProgramaAcademicoCreate>({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -77,10 +76,10 @@ export default function LineasPage() {
     setLoading(true);
     setError("");
     try {
-      const data = await lineasService.list();
-      setLineas(data);
+      const data = await programasAcademicosService.list();
+      setProgramas(data);
     } catch {
-      setError("No se pudieron cargar las líneas de investigación.");
+      setError("No se pudieron cargar los programas académicos.");
     } finally {
       setLoading(false);
     }
@@ -94,8 +93,11 @@ export default function LineasPage() {
     setPage(0);
   }, [search]);
 
-  const filtered = lineas.filter((l) =>
-    l.nombre.toLowerCase().includes(search.toLowerCase()),
+  const filtered = programas.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      p.codigo.toLowerCase().includes(search.toLowerCase()) ||
+      (p.facultad && p.facultad.toLowerCase().includes(search.toLowerCase())),
   );
   const paginated = filtered.slice(
     page * rowsPerPage,
@@ -109,14 +111,13 @@ export default function LineasPage() {
     setDialogOpen(true);
   };
 
-  const openEdit = (l: LineaInvestigacion) => {
-    setEditing(l);
+  const openEdit = (p: ProgramaAcademico) => {
+    setEditing(p);
     setForm({
-      nombre: l.nombre,
-      descripcion: l.descripcion || "",
-      mision: l.mision || "",
-      vision: l.vision || "",
-      is_active: l.is_active,
+      nombre: p.nombre,
+      codigo: p.codigo,
+      facultad: p.facultad || "",
+      is_active: p.is_active,
     });
     setFormError("");
     setDialogOpen(true);
@@ -128,14 +129,18 @@ export default function LineasPage() {
       setFormError("El nombre es obligatorio.");
       return;
     }
+    if (!form.codigo?.trim()) {
+      setFormError("El código es obligatorio.");
+      return;
+    }
     setSaving(true);
     try {
       if (editing) {
-        await lineasService.update(editing.id, form);
-        setSuccessMsg("Línea actualizada correctamente.");
+        await programasAcademicosService.update(editing.id, form);
+        setSuccessMsg("Programa académico actualizado correctamente.");
       } else {
-        await lineasService.create(form);
-        setSuccessMsg("Línea creada correctamente.");
+        await programasAcademicosService.create(form);
+        setSuccessMsg("Programa académico creado correctamente.");
       }
       setDialogOpen(false);
       load();
@@ -150,12 +155,14 @@ export default function LineasPage() {
     if (!deleteId) return;
     setDeleteLoading(true);
     try {
-      await lineasService.remove(deleteId);
-      setSuccessMsg("Línea eliminada correctamente.");
+      await programasAcademicosService.remove(deleteId);
+      setSuccessMsg("Programa académico eliminado correctamente.");
       setDeleteId(null);
       load();
     } catch (e: any) {
-      setError(e.response?.data?.detail || "No se pudo eliminar la línea.");
+      setError(
+        e.response?.data?.detail || "No se pudo eliminar el programa académico.",
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -181,7 +188,7 @@ export default function LineasPage() {
               bgcolor: `${theme.palette.primary.main}15`,
             }}
           >
-            <ScienceOutlined
+            <SchoolOutlined
               sx={{ color: theme.palette.primary.main, fontSize: 28 }}
             />
           </Box>
@@ -190,7 +197,7 @@ export default function LineasPage() {
             fontWeight={700}
             fontFamily='"DM Sans", sans-serif'
           >
-            Líneas de Investigación
+            Programas Académicos
           </Typography>
         </Box>
 
@@ -207,7 +214,7 @@ export default function LineasPage() {
               onClick={openCreate}
               sx={{ borderRadius: 2, textTransform: "none" }}
             >
-              Nueva Línea
+              Nuevo Programa
             </Button>
           )}
         </Box>
@@ -226,7 +233,7 @@ export default function LineasPage() {
 
       <TextField
         size="small"
-        placeholder="Buscar línea..."
+        placeholder="Buscar por nombre, código o facultad..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         slotProps={{
@@ -238,7 +245,7 @@ export default function LineasPage() {
             ),
           },
         }}
-        sx={{ mb: 3, width: { xs: "100%", sm: 350 } }}
+        sx={{ mb: 3, width: { xs: "100%", sm: 380 } }}
       />
 
       <Paper
@@ -248,10 +255,9 @@ export default function LineasPage() {
           <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell><strong>Código</strong></TableCell>
                 <TableCell><strong>Nombre</strong></TableCell>
-                <TableCell><strong>Descripción</strong></TableCell>
-                <TableCell><strong>Misión</strong></TableCell>
-                <TableCell><strong>Visión</strong></TableCell>
+                <TableCell><strong>Facultad</strong></TableCell>
                 <TableCell align="center"><strong>Estado</strong></TableCell>
                 {(canEdit || canDelete) && (
                   <TableCell align="center"><strong>Acciones</strong></TableCell>
@@ -261,33 +267,34 @@ export default function LineasPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
                     <CircularProgress size={32} />
                   </TableCell>
                 </TableRow>
               ) : paginated.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={5}
                     align="center"
                     sx={{ py: 6, color: theme.palette.text.disabled }}
                   >
-                    No se encontraron líneas de investigación
+                    No se encontraron programas académicos
                   </TableCell>
                 </TableRow>
               ) : (
-                paginated.map((l) => (
-                  <TableRow key={l.id} hover>
+                paginated.map((p) => (
+                  <TableRow key={p.id} hover>
                     <TableCell>
-                      <Typography fontWeight={600}>{l.nombre}</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {p.codigo}
+                      </Typography>
                     </TableCell>
-                    <TableCell>{l.descripcion || "—"}</TableCell>
-                    <TableCell>{l.mision || "—"}</TableCell>
-                    <TableCell>{l.vision || "—"}</TableCell>
+                    <TableCell>{p.nombre}</TableCell>
+                    <TableCell>{p.facultad || "—"}</TableCell>
                     <TableCell align="center">
                       <Chip
-                        label={l.is_active ? "Activa" : "Inactiva"}
-                        color={l.is_active ? "success" : "error"}
+                        label={p.is_active ? "Activo" : "Inactivo"}
+                        color={p.is_active ? "success" : "error"}
                         size="small"
                       />
                     </TableCell>
@@ -295,7 +302,7 @@ export default function LineasPage() {
                       <TableCell align="center">
                         {canEdit && (
                           <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => openEdit(l)}>
+                            <IconButton size="small" onClick={() => openEdit(p)}>
                               <EditOutlined fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -305,7 +312,7 @@ export default function LineasPage() {
                             <IconButton
                               size="small"
                               color="error"
-                              onClick={() => setDeleteId(l.id)}
+                              onClick={() => setDeleteId(p.id)}
                             >
                               <DeleteOutlined fontSize="small" />
                             </IconButton>
@@ -336,12 +343,21 @@ export default function LineasPage() {
       {/* Diálogo Crear / Editar */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>
-          {editing ? "Editar Línea" : "Nueva Línea de Investigación"}
+          {editing ? "Editar Programa" : "Nuevo Programa Académico"}
         </DialogTitle>
         <DialogContent dividers>
           {formError && (
             <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>
           )}
+          <TextField
+            fullWidth
+            label="Código *"
+            value={form.codigo}
+            onChange={(e) => setForm((f) => ({ ...f, codigo: e.target.value }))}
+            size="small"
+            margin="normal"
+            disabled={!!editing}
+          />
           <TextField
             fullWidth
             label="Nombre *"
@@ -352,31 +368,9 @@ export default function LineasPage() {
           />
           <TextField
             fullWidth
-            label="Descripción"
-            multiline
-            rows={2}
-            value={form.descripcion}
-            onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-            size="small"
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Misión"
-            multiline
-            rows={2}
-            value={form.mision}
-            onChange={(e) => setForm((f) => ({ ...f, mision: e.target.value }))}
-            size="small"
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Visión"
-            multiline
-            rows={2}
-            value={form.vision}
-            onChange={(e) => setForm((f) => ({ ...f, vision: e.target.value }))}
+            label="Facultad"
+            value={form.facultad}
+            onChange={(e) => setForm((f) => ({ ...f, facultad: e.target.value }))}
             size="small"
             margin="normal"
           />
@@ -388,7 +382,7 @@ export default function LineasPage() {
                 color="success"
               />
             }
-            label="Activa"
+            label="Activo"
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
@@ -396,19 +390,19 @@ export default function LineasPage() {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={saving || !form.nombre}
+            disabled={saving || !form.nombre || !form.codigo}
           >
             {saving ? <CircularProgress size={18} /> : "Guardar"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo Inactivar */}
+      {/* Diálogo Eliminar */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Eliminar línea?</DialogTitle>
+        <DialogTitle>Eliminar programa académico?</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
-            Esta acción eliminará la línea de investigación.
+            Esta acción eliminará el programa académico permanentemente.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>

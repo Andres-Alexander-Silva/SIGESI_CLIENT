@@ -24,30 +24,29 @@ export default function PasswordRecoveryPage() {
 
   const theme = useTheme();
 
-  const isUFPSEmail = (value: string) =>
-    value.trim().toLowerCase().endsWith("@ufps.edu.co");
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    if (!isUFPSEmail(email)) {
-      setError("El correo debe pertenecer al dominio @ufps.edu.co");
-      setLoading(false);
+    if (!email.trim()) {
+      setError("Por favor ingresa tu correo electrónico.");
       return;
     }
 
+    setLoading(true);
     try {
-      // Ajusta el endpoint según tu Swagger
       await api.post("/auth/recuperacion/", { email: email.trim() });
       setSuccess(true);
     } catch (err: any) {
-      setError(
-        err.response?.data?.detail ||
-          err.response?.data?.message ||
-          "No se pudo enviar el correo de recuperación.",
-      );
+      const data = err.response?.data;
+      // El backend puede devolver errores en distintos formatos
+      const msg =
+        data?.email?.[0] ||
+        data?.detail ||
+        data?.message ||
+        data?.non_field_errors?.[0] ||
+        "No se pudo enviar el correo de recuperación. Verifica que el correo esté registrado.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -95,7 +94,7 @@ export default function PasswordRecoveryPage() {
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex" }}>
-      {/* Panel izquierdo - Branding (igual que LoginPage) */}
+      {/* Panel izquierdo - Branding */}
       <Box
         sx={{
           display: { xs: "none", lg: "flex" },
