@@ -8,17 +8,21 @@
  */
 import api from "@/services/api";
 
-export async function downloadFile(url: string, filename: string): Promise<void> {
+export async function downloadFile(
+  url: string,
+  filename: string,
+): Promise<void> {
   const response = await api.get(url, { responseType: "blob" });
 
   // Intentar extraer el nombre del archivo desde el header Content-Disposition
-  const disposition: string = response.headers["content-disposition"] ?? "";
+  const disposition = String(response.headers["content-disposition"] ?? "");
+  const contentType = String(
+    response.headers["content-type"] ?? "application/octet-stream",
+  );
   const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
   const resolvedName = match?.[1]?.replace(/['"]/g, "") ?? filename;
 
-  const blob = new Blob([response.data], {
-    type: response.headers["content-type"] ?? "application/octet-stream",
-  });
+  const blob = new Blob([response.data], { type: contentType });
 
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
