@@ -6,9 +6,16 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RoleOption {
+  code: UserRole;
+  name: string;
+}
+
 export interface AuthTokens {
   access: string;
   refresh: string;
+  /** Token de identidad temporal devuelto por /auth/login/ cuando hay SELECT_ROLE */
+  identityToken?: string;
 }
 
 export type UserRole =
@@ -24,6 +31,8 @@ export interface User {
   first_name: string;
   last_name: string;
   roles: UserRole[];
+  /** Roles disponibles con nombre legible, tal como los devuelve el backend */
+  available_roles: RoleOption[];
   is_active: boolean;
 }
 

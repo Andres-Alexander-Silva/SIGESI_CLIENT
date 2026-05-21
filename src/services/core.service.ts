@@ -96,6 +96,13 @@ export const semillerosService = {
       })
       .then((r) => r.data);
   },
+
+  /**
+   * URL para descarga autenticada del archivo del aval.
+   * GET /core/semilleros/{id}/aval/download/
+   */
+  avalDownloadUrl: (id: number): string =>
+    `/core/semilleros/${id}/aval/download/`,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -151,3 +158,4 @@ export default {
   lineasService,
   gruposService,
 };
+

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -57,13 +57,26 @@ const ROL_META: Record<
 export default function SelectRolePage() {
   const { user, selectRole, activeRole } = useAuth();
   const navigate = useNavigate();
-  const isChangingRole = Boolean(activeRole); // true si ya hay un rol activo
+  const isChangingRole = Boolean(activeRole);
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
+  const [roleError, setRoleError] = useState("");
 
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
     }
   }, [user, navigate]);
+
+  const handleSelectRole = async (rol: UserRole) => {
+    setRoleError("");
+    setLoadingRole(rol);
+    try {
+      await selectRole(rol);
+    } catch {
+      setRoleError("No se pudo seleccionar el rol. Intenta de nuevo.");
+      setLoadingRole(null);
+    }
+  };
 
   if (!user) {
     return (
@@ -80,7 +93,12 @@ export default function SelectRolePage() {
     );
   }
 
-  const availableRoles = (user.roles ?? []) as UserRole[];
+  // Usar available_roles del user (devueltos por el backend) para mostrar
+  // nombre legible; si no existen, construir desde roles[]
+  const availableRoles: UserRole[] =
+    user.available_roles?.length
+      ? user.available_roles.map((r) => r.code)
+      : (user.roles ?? []);
 
   return (
     <Box
@@ -106,7 +124,8 @@ export default function SelectRolePage() {
           <Typography variant="body1" color="text.secondary">
             {isChangingRole ? (
               <>
-                Rol actual: <strong>{activeRole}</strong>. Selecciona el nuevo rol con el que quieres continuar.
+                Rol actual: <strong>{activeRole}</strong>. Selecciona el nuevo
+                rol con el que quieres continuar.
               </>
             ) : (
               <>
@@ -119,6 +138,12 @@ export default function SelectRolePage() {
             )}
           </Typography>
         </Box>
+
+        {roleError && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+            {roleError}
+          </Alert>
+        )}
 
         {/* Lista de roles */}
         {availableRoles.length === 0 ? (
@@ -133,6 +158,8 @@ export default function SelectRolePage() {
                 icon: <PersonOutlined fontSize="large" />,
                 color: "#555",
               };
+              const isLoading = loadingRole === rol;
+              const isDisabled = loadingRole !== null;
 
               return (
                 <Card
@@ -140,15 +167,19 @@ export default function SelectRolePage() {
                   variant="outlined"
                   sx={{
                     borderRadius: 3,
-                    transition: "box-shadow 0.2s, border-color 0.2s",
-                    "&:hover": {
-                      borderColor: meta.color,
-                      boxShadow: `0 0 0 2px ${meta.color}33`,
-                    },
+                    opacity: isDisabled && !isLoading ? 0.5 : 1,
+                    transition: "box-shadow 0.2s, border-color 0.2s, opacity 0.2s",
+                    "&:hover": !isDisabled
+                      ? {
+                          borderColor: meta.color,
+                          boxShadow: `0 0 0 2px ${meta.color}33`,
+                        }
+                      : {},
                   }}
                 >
                   <CardActionArea
-                    onClick={() => selectRole(rol)}
+                    onClick={() => !isDisabled && handleSelectRole(rol)}
+                    disabled={isDisabled}
                     sx={{
                       p: 2.5,
                       display: "flex",
@@ -157,7 +188,11 @@ export default function SelectRolePage() {
                     }}
                   >
                     <Box sx={{ color: meta.color, display: "flex" }}>
-                      {meta.icon}
+                      {isLoading ? (
+                        <CircularProgress size={28} sx={{ color: meta.color }} />
+                      ) : (
+                        meta.icon
+                      )}
                     </Box>
                     <Box sx={{ flexGrow: 1, textAlign: "left" }}>
                       <Typography variant="h6" fontWeight={600}>
@@ -187,7 +222,11 @@ export default function SelectRolePage() {
             <Typography
               component="span"
               variant="body2"
-              sx={{ color: "primary.main", cursor: "pointer", textDecoration: "underline" }}
+              sx={{
+                color: "primary.main",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
               onClick={() => navigate(-1)}
             >
               Cancelar y volver

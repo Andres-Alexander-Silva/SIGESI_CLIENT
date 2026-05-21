@@ -51,6 +51,7 @@ import {
 import { cronogramaProyectoService } from "@/services/cronogramaProyecto.service";
 import { proyectosService } from "@/services/core.service";
 import { usePermissions } from "@/context/PermissionsContext";
+import { downloadFile } from "@/utils/downloadFile";
 
 const EMPTY_FORM: Omit<CronogramaProyectoCreate, "proyecto"> = {
   actividad: "",
@@ -116,6 +117,48 @@ export default function CronogramaProyectoPage() {
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
+
+  const handleUploadArchive = async (
+    item: CronogramaProyecto,
+    file: File,
+  ) => {
+    setUploadingId(item.id);
+    try {
+      await cronogramaProyectoService.archiveUpload(item.id, file, {
+        proyecto: item.proyecto,
+        actividad: item.actividad,
+        descripcion_actividad: item.descripcion_actividad,
+        fecha_inicio: item.fecha_inicio,
+        fecha_fin: item.fecha_fin,
+        fecha_entrega: item.fecha_entrega,
+        estado_actividad: item.estado_actividad,
+        observaciones: item.observaciones,
+      });
+      setSuccessMsg("Archivo subido correctamente.");
+      load();
+    } catch {
+      setError("No se pudo subir el archivo.");
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const handleDownloadArchive = async (item: CronogramaProyecto) => {
+    setDownloadingId(item.id);
+    try {
+      await downloadFile(
+        cronogramaProyectoService.archiveDownloadUrl(item.id),
+        `cronograma_${item.id}_${item.actividad.replace(/\s+/g, "_")}.pdf`,
+      );
+    } catch {
+      setError("No se pudo descargar el archivo adjunto.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // Cargar proyectos primero
   useEffect(() => {
@@ -481,16 +524,52 @@ export default function CronogramaProyectoPage() {
                         </TableCell>
                         <TableCell align="center">
                           {item.archivo_cronograma ? (
-                            <IconButton
-                              component="a"
-                              href={item.archivo_cronograma}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <DownloadOutlined />
-                            </IconButton>
+                            <Tooltip title="Descargar archivo adjunto">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  disabled={downloadingId === item.id}
+                                  onClick={() => handleDownloadArchive(item)}
+                                >
+                                  {downloadingId === item.id ? (
+                                    <CircularProgress size={18} />
+                                  ) : (
+                                    <DownloadOutlined />
+                                  )}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           ) : (
                             "—"
+                          )}
+                          {canEdit && (
+                            <Tooltip title="Subir / reemplazar archivo">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="default"
+                                  disabled={uploadingId === item.id}
+                                  component="label"
+                                >
+                                  {uploadingId === item.id ? (
+                                    <CircularProgress size={18} />
+                                  ) : (
+                                    <UploadFileOutlined fontSize="small" />
+                                  )}
+                                  <input
+                                    type="file"
+                                    hidden
+                                    accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleUploadArchive(item, file);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           )}
                         </TableCell>
                         {(canEdit || canDelete) && (

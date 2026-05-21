@@ -60,6 +60,7 @@ import {
 import { proyectosService } from "@/services/core.service";
 import { usersService } from "@/services/config.service";
 import { usePermissions } from "@/context/PermissionsContext";
+import { downloadFile } from "@/utils/downloadFile";
 import { useAuth } from "@/context/AuthContext";
 import {
   Avance,
@@ -160,7 +161,39 @@ export default function AvancesPage() {
   // Dialog eliminar
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | string | null>(null);
 
+  const handleDownloadEvidencia = async (av: Avance) => {
+    setDownloadingId(av.id);
+    try {
+      await downloadFile(
+        avancesService.archiveDownloadUrl(av.id),
+        `avance_${av.id}_evidencia.pdf`,
+      );
+    } catch {
+      setError("No se pudo descargar la evidencia.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleUploadEvidencia = async (av: Avance, file: File) => {
+    setDownloadingId(`upload_${av.id}`);
+    try {
+      await avancesService.archiveUpload(av.id, file, {
+        actividad: av.actividad,
+        tipo: "documento",
+        titulo: av.descripcion?.slice(0, 100) || `Avance ${av.id}`,
+        descripcion: av.descripcion,
+      });
+      setError(null);
+      await load();
+    } catch {
+      setError("No se pudo subir el archivo de evidencia.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
   // ── Carga de datos ──────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true);
@@ -676,22 +709,61 @@ export default function AvancesPage() {
                       </TableCell>
                       <TableCell>
                         {av.evidencia ? (
-                          <Tooltip title="Ver evidencia">
-                            <IconButton
-                              size="small"
-                              href={av.evidencia}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              color="primary"
-                            >
-                              <AttachFileOutlined fontSize="small" />
-                            </IconButton>
+                          <Tooltip title="Descargar evidencia">
+                            <span>
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                disabled={downloadingId === av.id}
+                                onClick={() => handleDownloadEvidencia(av)}
+                              >
+                                {downloadingId === av.id ? (
+                                  <CircularProgress size={16} />
+                                ) : (
+                                  <AttachFileOutlined fontSize="small" />
+                                )}
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         ) : (
                           <Typography variant="caption" color="text.secondary">
                             Sin archivo
                           </Typography>
                         )}
+                        {(canEdit || isStudent) &&
+                          av.estado !== "aprobado" && (
+                            <Tooltip title="Subir / reemplazar evidencia">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  disabled={
+                                    downloadingId === `upload_${av.id}`
+                                  }
+                                  component="label"
+                                >
+                                  {downloadingId === `upload_${av.id}` ? (
+                                    <CircularProgress size={16} />
+                                  ) : (
+                                    <AttachFileOutlined
+                                      fontSize="small"
+                                      color="action"
+                                    />
+                                  )}
+                                  <input
+                                    type="file"
+                                    hidden
+                                    accept=".pdf,.jpg,.jpeg,.png,.docx"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file)
+                                        handleUploadEvidencia(av, file);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
                       </TableCell>
                       <TableCell align="center">
                         <Stack

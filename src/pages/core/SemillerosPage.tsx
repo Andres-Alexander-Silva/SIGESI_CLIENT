@@ -44,6 +44,7 @@ import {
   OpenInNewOutlined,
   UploadFileOutlined,
   CheckCircleOutlined,
+  DownloadOutlined,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -55,6 +56,7 @@ import {
 import { usersService } from "@/services/config.service";
 import { usePermissions } from "@/context/PermissionsContext";
 import { useAuth } from "@/context/AuthContext";
+import { downloadFile } from "@/utils/downloadFile";
 import {
   Semillero,
   SemilleroCreate,
@@ -85,6 +87,7 @@ const EMPTY_AVAL_FORM: SemilleroAval = {
   estado_aval: "sin_aprobar",
   tipo_documento: "acta",
   numero_acta: "",
+  fecha_aprobacion: null,
   observaciones: "",
 };
 
@@ -154,6 +157,21 @@ export default function SemillerosPage() {
   const avalFileRef = useRef<HTMLInputElement>(null);
   const [avalSaving, setAvalSaving] = useState(false);
   const [avalError, setAvalError] = useState("");
+  const [downloadingAval, setDownloadingAval] = useState<number | null>(null);
+
+  const handleDownloadAval = async (s: Semillero) => {
+    setDownloadingAval(s.id);
+    try {
+      await downloadFile(
+        semillerosService.avalDownloadUrl(s.id),
+        `aval_${s.codigo}.pdf`,
+      );
+    } catch {
+      setError("No se pudo descargar el archivo del aval.");
+    } finally {
+      setDownloadingAval(null);
+    }
+  };
 
   const loadSemilleros = useCallback(async () => {
     setLoading(true);
@@ -326,6 +344,7 @@ export default function SemillerosPage() {
       estado_aval: s.estado_aval ?? "sin_aprobar",
       tipo_documento: s.tipo_documento ?? "acta",
       numero_acta: s.numero_acta ?? "",
+      fecha_aprobacion: s.fecha_aprobacion ?? "",
       observaciones: s.observaciones ?? "",
     });
     setAvalFile(null);
@@ -337,10 +356,23 @@ export default function SemillerosPage() {
     if (!avalSemillero) return;
     setAvalError("");
 
+    // Validación: si se aprueba, tipo_documento y numero_acta son obligatorios
+    if (avalForm.estado_aval === "aprobado") {
+      if (!avalForm.tipo_documento) {
+        setAvalError("El tipo de documento es obligatorio al aprobar el aval.");
+        return;
+      }
+      if (!avalForm.numero_acta?.trim()) {
+        setAvalError("El número de acta es obligatorio al aprobar el aval.");
+        return;
+      }
+    }
+
     const payload: SemilleroAval = {
       estado_aval: avalForm.estado_aval,
       tipo_documento: avalForm.tipo_documento ?? "acta",
       numero_acta: avalForm.numero_acta,
+      fecha_aprobacion: avalForm.fecha_aprobacion || null,
       observaciones: avalForm.observaciones,
     };
 
@@ -527,18 +559,38 @@ export default function SemillerosPage() {
                     <TableCell>{s.director_nombre || "—"}</TableCell>
                     <TableCell align="center">{s.fecha_creacion}</TableCell>
                     <TableCell align="center">
-                      <Chip
-                        label={
-                          ESTADO_AVAL_LABELS[s.estado_aval ?? "sin_aprobar"]
-                        }
-                        color={
-                          ESTADO_AVAL_COLORS[s.estado_aval ?? "sin_aprobar"]
-                        }
-                        size="small"
-                        variant={
-                          s.estado_aval === "aprobado" ? "filled" : "outlined"
-                        }
-                      />
+                      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                        <Chip
+                          label={
+                            ESTADO_AVAL_LABELS[s.estado_aval ?? "sin_aprobar"]
+                          }
+                          color={
+                            ESTADO_AVAL_COLORS[s.estado_aval ?? "sin_aprobar"]
+                          }
+                          size="small"
+                          variant={
+                            s.estado_aval === "aprobado" ? "filled" : "outlined"
+                          }
+                        />
+                        {s.archivo_aval && (
+                          <Tooltip title="Descargar aval">
+                            <span>
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                disabled={downloadingAval === s.id}
+                                onClick={() => handleDownloadAval(s)}
+                              >
+                                {downloadingAval === s.id ? (
+                                  <CircularProgress size={14} />
+                                ) : (
+                                  <DownloadOutlined fontSize="small" />
+                                )}
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
                       <Chip
@@ -854,7 +906,34 @@ export default function SemillerosPage() {
             </TextField>
 
             <TextField
-              label="Número de Acta"
+              select
+              label={
+                avalForm.estado_aval === "aprobado"
+                  ? "Tipo de Documento *"
+                  : "Tipo de Documento"
+              }
+              value={avalForm.tipo_documento ?? "acta"}
+              onChange={(e) =>
+                setAvalForm((f) => ({
+                  ...f,
+                  tipo_documento: e.target.value as SemilleroAval["tipo_documento"],
+                }))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="acta">Acta</MenuItem>
+              <MenuItem value="resolucion">Resolución</MenuItem>
+              <MenuItem value="oficio">Oficio</MenuItem>
+              <MenuItem value="certificado">Certificado</MenuItem>
+            </TextField>
+
+            <TextField
+              label={
+                avalForm.estado_aval === "aprobado"
+                  ? "Número de Acta *"
+                  : "Número de Acta"
+              }
               value={avalForm.numero_acta ?? ""}
               onChange={(e) =>
                 setAvalForm((f) => ({ ...f, numero_acta: e.target.value }))
@@ -862,6 +941,22 @@ export default function SemillerosPage() {
               size="small"
               fullWidth
               placeholder="Ej: ACTA-2026-001"
+            />
+
+            <TextField
+              label="Fecha de Aprobación"
+              type="date"
+              value={avalForm.fecha_aprobacion ?? ""}
+              onChange={(e) =>
+                setAvalForm((f) => ({
+                  ...f,
+                  fecha_aprobacion: e.target.value || null,
+                }))
+              }
+              size="small"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              helperText="Requerida al aprobar el aval. Si se omite, se registra automáticamente."
             />
 
             {/* Subir archivo del aval */}
@@ -960,19 +1055,22 @@ export default function SemillerosPage() {
                   Archivo del aval:
                 </Typography>
                 <br />
-                <Link
-                  href={avalSemillero.archivo_aval}
-                  target="_blank"
-                  rel="noopener"
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    mt: 0.5,
-                  }}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={
+                    downloadingAval === avalSemillero.id ? (
+                      <CircularProgress size={14} />
+                    ) : (
+                      <DownloadOutlined fontSize="small" />
+                    )
+                  }
+                  disabled={downloadingAval === avalSemillero.id}
+                  onClick={() => handleDownloadAval(avalSemillero)}
+                  sx={{ mt: 0.5 }}
                 >
-                  Ver documento <OpenInNewOutlined fontSize="inherit" />
-                </Link>
+                  Descargar documento
+                </Button>
               </Box>
             )}
           </Stack>

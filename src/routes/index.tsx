@@ -25,8 +25,6 @@ import InscripcionesPage from "@/pages/core/InscripcionPage";
 import MiembrosPage from "@/pages/core/MiembrosPage";
 import ActividadesPage from "@/pages/core/ActividadesPage";
 import AvancesPage from "@/pages/core/AvancesPage";
-
-// ── NUEVO: módulo de reportes ──────────────────────────────────────────────────
 import ReportesPageWrapper from "@/pages/reportes/ReportesPageWrapper";
 import ProduccionAcademicaPage from "@/pages/core/ProduccionAcademicaPage";
 import ProgramasAcademicosPage from "@/pages/core/ProgramasAcademicosPage";
@@ -47,12 +45,17 @@ const router = createBrowserRouter([
       </AuthProviderWrapper>
     ),
     children: [
-      // ── Rutas públicas ──────────────────────────────────────────────────────
+      // ── Rutas públicas ────────────────────────────────────────────────────
       { path: "login", element: <LoginPage /> },
       { path: "recuperacion", element: <PasswordRecoveryPage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },
 
-      // ── Rutas protegidas ────────────────────────────────────────────────────
+      // select-role es semi-pública: no requiere isAuthenticated (aún no hay
+      // tokens definitivos al llegar aquí desde el login), pero la página
+      // misma redirige a /login si no existe user en el contexto.
+      { path: "select-role", element: <SelectRolePage /> },
+
+      // ── Rutas protegidas ─────────────────────────────────────────────────
       {
         path: "/",
         element: (
@@ -61,8 +64,6 @@ const router = createBrowserRouter([
           </PermissionsProvider>
         ),
         children: [
-          { path: "select-role", element: <SelectRolePage /> },
-
           {
             element: <MainLayout />,
             children: [
@@ -83,14 +84,7 @@ const router = createBrowserRouter([
               { path: "cronograma_proyecto", element: <CronogramaProyectoPage /> },
               { path: "evaluaciones_proyecto", element: <EvaluacionesProyectoPage /> },
 
-              // ── Reportes ─────────────────────────────────────────────────────
-              // URL: /reportes
-              // Roles con acceso: administrador, director_grupo,
-              //                   director_semillero, lider_estudiantil,
-              //                   estudiante
-              // El componente wrapper lee el rol activo del contexto y decide
-              // qué vista renderizar internamente (VistaDirector / VistaAdministrador
-              // / VistaEstudiante).
+              // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
 
               // Configuración

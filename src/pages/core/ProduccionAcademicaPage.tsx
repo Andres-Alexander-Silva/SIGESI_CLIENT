@@ -471,6 +471,7 @@ export default function ProduccionAcademicaPage() {
         canEdit={canWrite}
         onClose={() => setDetailItem(null)}
         onEdit={handleOpenEdit}
+        onRefresh={refresh}
       />
 
       <ConfirmarEliminar
