@@ -33,10 +33,11 @@ import {
 import { formatApiError } from '@/utils/apiError';
 import { useEffect } from 'react';
 import type { Semillero } from '@/types/core';
+import { UserRole } from '@/types';
 
 // ─── Constantes de rol ────────────────────────────────────────────────────────
-const ROLES_ESCRITURA = ['administrador', 'director_grupo', 'director_semillero', 'lider_estudiantil'];
-const ROLES_APROBADOR = ['administrador', 'director_grupo'];
+const ROLES_ESCRITURA: UserRole[] = ['administrador', 'director_grupo', 'director_semillero', 'lider_estudiantil'];
+const ROLES_APROBADOR : UserRole[] = ['administrador', 'director_grupo'];
 
 // ─── Semestres disponibles ────────────────────────────────────────────────────
 function getSemestres(): string[] {
@@ -438,8 +439,8 @@ function ConfirmDialog({ open, title, message, color = 'error', onConfirm, onClo
 export default function PlanAccionPage() {
   const { activeRole } = useAuth();
 
-  const puedeEscribir = ROLES_ESCRITURA.includes(activeRole ?? '');
-  const puedeAprobar  = ROLES_APROBADOR.includes(activeRole ?? '');
+  const puedeEscribir = activeRole != null && ROLES_ESCRITURA.includes(activeRole);
+  const puedeAprobar  = activeRole != null && ROLES_APROBADOR.includes(activeRole);
 
   // Hook de datos
   const { data, isLoading, error, filters, setFilters, refresh, create, update, remove, aprobar, rechazar } =

@@ -31,7 +31,6 @@ import { useAuth }               from '@/context/AuthContext';
 import { useCronograma }         from '@/hooks/useCronograma';
 import {
   actividadCronogramaService,
-  cronogramaService,
 } from '@/services/planEstrategico.service';
 import { planAccionService }     from '@/services/planAccion.service';
 import {
@@ -43,9 +42,10 @@ import {
 } from '@/types/planEstrategico';
 import { formatApiError } from '@/utils/apiError';
 import type { PlanAccion } from '@/types/planAccion';
+import { UserRole } from '@/types';
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
-const ROLES_ESCRITURA = ['administrador', 'director_grupo', 'director_semillero'];
+const ROLES_ESCRITURA: UserRole[] = ['administrador', 'director_grupo', 'director_semillero'];
 
 function getSemestres(): string[] {
   const year = new Date().getFullYear();
