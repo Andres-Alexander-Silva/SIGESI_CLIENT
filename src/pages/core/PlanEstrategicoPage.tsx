@@ -34,10 +34,11 @@ import {
 } from '@/types/planEstrategico';
 import { formatApiError } from '@/utils/apiError';
 import type { Semillero } from '@/types/core';
+import { UserRole } from '@/types';
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
-const ROLES_ESCRITURA = ['administrador', 'director_grupo', 'director_semillero'];
-const ROLES_APROBADOR = ['administrador', 'director_grupo'];
+const ROLES_ESCRITURA: UserRole[] = ['administrador', 'director_grupo', 'director_semillero'];
+const ROLES_APROBADOR: UserRole[] = ['administrador', 'director_grupo'];
 
 function getYears() {
   const y = new Date().getFullYear();
@@ -125,8 +126,8 @@ export default function PlanEstrategicoPage() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    semillerosService.list({ page: 1 } as Parameters<typeof semillerosService.list>[0])
-      .then(r => setSemilleros(Array.isArray(r) ? r : (r as { results: Semillero[] }).results ?? []))
+    semillerosService.list()
+      .then(r => setSemilleros(r))
       .catch(() => {});
   }, []);
 
