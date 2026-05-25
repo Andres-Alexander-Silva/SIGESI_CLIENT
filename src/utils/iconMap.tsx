@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react';
+import { type ReactElement } from "react";
 import {
   DashboardOutlined,
   GroupsOutlined,
@@ -31,8 +31,9 @@ import {
   HelpOutlined,
   CalendarMonthOutlined,
   RateReviewOutlined,
-} from '@mui/icons-material';
-import { FaChartLine, FaTasks } from 'react-icons/fa';
+  TrackChangesOutlined,
+} from "@mui/icons-material";
+import { FaChartLine, FaTasks } from "react-icons/fa";
 
 /**
  * Mapa de nombres de icono (devueltos por la API) a componentes MUI.
@@ -73,6 +74,8 @@ const MAP: Record<string, ReactElement> = {
   fatasks: <FaTasks />, // FaTasks
   clipboard: <AssignmentOutlined />,
   clipboardlist: <AssignmentOutlined />,
+  listcheck: <ListAltOutlined />, // fa-list-check
+  planaccion: <ListAltOutlined />,
 
   // ── Producción académica ─────────────────────────────────────────────────
   produccion: <ArticleOutlined />,
@@ -189,6 +192,9 @@ const MAP: Record<string, ReactElement> = {
   evaluacionesproyecto: <RateReviewOutlined />,
   cronograma: <CalendarMonthOutlined />,
   evaluaciones: <RateReviewOutlined />,
+  lan_estrategico: <TrackChangesOutlined />,
+  bullseye: <TrackChangesOutlined />,
+  target: <TrackChangesOutlined />,
 };
 
 /**
@@ -196,20 +202,23 @@ const MAP: Record<string, ReactElement> = {
  * Se usa para los ítems hijo del sidebar donde la API no proporciona un icono.
  */
 const URL_MAP: Record<string, ReactElement> = {
-  dashboard:    <DashboardOutlined />,
-  semilleros:   <ScienceOutlined />,
-  grupos:       <GroupsOutlined />,
-  proyectos:    <AssignmentOutlined />,
-  produccion:   <ArticleOutlined />,
-  convocatorias:<CampaignOutlined />,
-  reportes:     <BarChartOutlined />,
-  usuarios:     <PersonOutlined />,
-  menus:        <MenuOutlined />,
-  opciones:     <CheckBoxOutlined />,
-  permisos:     <SecurityOutlined />,
+  dashboard: <DashboardOutlined />,
+  semilleros: <ScienceOutlined />,
+  grupos: <GroupsOutlined />,
+  proyectos: <AssignmentOutlined />,
+  produccion: <ArticleOutlined />,
+  convocatorias: <CampaignOutlined />,
+  reportes: <BarChartOutlined />,
+  usuarios: <PersonOutlined />,
+  menus: <MenuOutlined />,
+  opciones: <CheckBoxOutlined />,
+  permisos: <SecurityOutlined />,
   programas_academicos: <SchoolOutlined />,
   cronograma_proyecto: <CalendarMonthOutlined />,
   evaluaciones_proyecto: <RateReviewOutlined />,
+  plan_accion: <ListAltOutlined />,
+  plan_estrategico: <TrackChangesOutlined />,
+  cronograma: <CalendarMonthOutlined />,
 };
 
 /**
@@ -218,7 +227,7 @@ const URL_MAP: Record<string, ReactElement> = {
  */
 export function getUrlIcon(url: string | undefined): ReactElement {
   if (!url) return <FolderOutlined />;
-  const segment = url.replace(/\/$/, '').split('/').pop()?.toLowerCase() ?? '';
+  const segment = url.replace(/\/$/, "").split("/").pop()?.toLowerCase() ?? "";
   return URL_MAP[segment] ?? <FolderOutlined />;
 }
 
@@ -233,11 +242,11 @@ export function getMenuIcon(iconName: string | undefined): ReactElement {
 
   // 1. Quitar prefijos Font Awesome: "fa-", "fas ", "far ", "fal ", "fab "
   const stripped = iconName
-    .replace(/^fa[srblx]?\s+/i, '')  // "fas fa-flask" → "fa-flask"
-    .replace(/^fa-/i, '');            // "fa-flask" → "flask"
+    .replace(/^fa[srblx]?\s+/i, "") // "fas fa-flask" → "fa-flask"
+    .replace(/^fa-/i, ""); // "fa-flask" → "flask"
 
   // 2. Normalizar: minúsculas, quitar guiones/espacios/underscores
-  const key = stripped.toLowerCase().replace(/[-_\s]/g, '');
+  const key = stripped.toLowerCase().replace(/[-_\s]/g, "");
 
   return MAP[key] ?? <FolderOutlined />;
 }
@@ -246,18 +255,20 @@ export function getMenuIcon(iconName: string | undefined): ReactElement {
  * Resuelve el icono del sidebar intentando primero por URL para priorizar
  * nuestras rutas conocidas, y luego por el nombre de icono devuelto por el backend.
  */
-export function getSidebarIcon(icono: string | undefined, url: string | undefined): ReactElement {
+export function getSidebarIcon(
+  icono: string | undefined,
+  url: string | undefined,
+): ReactElement {
   if (url) {
-    const segment = url.replace(/\/$/, '').split('/').pop()?.toLowerCase() ?? '';
+    const segment =
+      url.replace(/\/$/, "").split("/").pop()?.toLowerCase() ?? "";
     if (URL_MAP[segment]) {
       return URL_MAP[segment];
     }
   }
   if (icono) {
-    const stripped = icono
-      .replace(/^fa[srblx]?\s+/i, '')
-      .replace(/^fa-/i, '');
-    const key = stripped.toLowerCase().replace(/[-_\s]/g, '');
+    const stripped = icono.replace(/^fa[srblx]?\s+/i, "").replace(/^fa-/i, "");
+    const key = stripped.toLowerCase().replace(/[-_\s]/g, "");
     if (MAP[key]) {
       return MAP[key];
     }

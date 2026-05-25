@@ -1,4 +1,3 @@
-// src/routes/index.tsx
 import { createBrowserRouter, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { PermissionsProvider } from "@/context/PermissionsContext";
@@ -30,6 +29,9 @@ import ProduccionAcademicaPage from "@/pages/core/ProduccionAcademicaPage";
 import ProgramasAcademicosPage from "@/pages/core/ProgramasAcademicosPage";
 import CronogramaProyectoPage from "@/pages/core/CronogramaProyectoPage";
 import EvaluacionesProyectoPage from "@/pages/core/EvaluacionesProyectoPage";
+import PlanAccionPage from "@/pages/core/PlanAccionPage";
+import PlanEstrategicoPage from "@/pages/core/PlanEstrategicoPage";
+import CronogramaPage from "@/pages/core/CronogramaPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -79,10 +81,25 @@ const router = createBrowserRouter([
               { path: "gestionar_miembros", element: <MiembrosPage /> },
               { path: "actividades", element: <ActividadesPage /> },
               { path: "avances", element: <AvancesPage /> },
-              { path: "produccion_academica", element: <ProduccionAcademicaPage /> },
-              { path: "programas_academicos", element: <ProgramasAcademicosPage /> },
-              { path: "cronograma_proyecto", element: <CronogramaProyectoPage /> },
-              { path: "evaluaciones_proyecto", element: <EvaluacionesProyectoPage /> },
+              {
+                path: "produccion_academica",
+                element: <ProduccionAcademicaPage />,
+              },
+              {
+                path: "programas_academicos",
+                element: <ProgramasAcademicosPage />,
+              },
+              {
+                path: "cronograma_proyecto",
+                element: <CronogramaProyectoPage />,
+              },
+              {
+                path: "evaluaciones_proyecto",
+                element: <EvaluacionesProyectoPage />,
+              },
+              { path: "plan_accion", element: <PlanAccionPage /> },
+              { path: "plan_estrategico", element: <PlanEstrategicoPage /> },
+              { path: "cronograma", element: <CronogramaPage /> },
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
