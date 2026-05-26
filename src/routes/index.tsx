@@ -30,6 +30,7 @@ import ProgramasAcademicosPage from "@/pages/core/ProgramasAcademicosPage";
 import CronogramaProyectoPage from "@/pages/core/CronogramaProyectoPage";
 import EvaluacionesProyectoPage from "@/pages/core/EvaluacionesProyectoPage";
 import PlanAccionPage from "@/pages/core/PlanAccionPage";
+import PlanAccionDashboardPage from "@/pages/core/PlanAccionDashboardPage";
 import PlanEstrategicoPage from "@/pages/core/PlanEstrategicoPage";
 import CronogramaPage from "@/pages/core/CronogramaPage";
 
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
                 element: <EvaluacionesProyectoPage />,
               },
               { path: "plan_accion", element: <PlanAccionPage /> },
+              { path: "plan_accion/:id/dashboard", element: <PlanAccionDashboardPage /> },
               { path: "plan_estrategico", element: <PlanEstrategicoPage /> },
               { path: "cronograma", element: <CronogramaPage /> },
 

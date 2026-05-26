@@ -39,6 +39,8 @@ import {
   CronogramaFilters,
   ESTADO_CRONOGRAMA_LABELS, ESTADO_CRONOGRAMA_COLOR,
   EstadoCronogramaSemestral,
+  EstadoActividadCronograma,
+  ESTADO_ACT_CRON_LABELS, ESTADO_ACT_CRON_COLOR,
 } from '@/types/planEstrategico';
 import { formatApiError } from '@/utils/apiError';
 import type { PlanAccion } from '@/types/planAccion';
@@ -91,6 +93,7 @@ const EMPTY_ACTIVIDAD: ActividadCronogramaCreate = {
   responsable:         null,
   objetivo_general:    '',
   objetivos_especificos: '',
+  estado:              'pendiente',
   fecha_inicio:        '',
   fecha_fin_estimada:  '',
   fecha_fin:           null,
@@ -119,23 +122,26 @@ function TimelineActividades({ actividades }: { actividades: ActividadCronograma
       {actividades.map((act, idx) => {
         const today = new Date();
         const fin   = new Date(act.fecha_fin_estimada);
-        const esAtrasada = fin < today && !act.fecha_fin;
+        const esCompletada = act.estado === 'completada' || Boolean(act.fecha_fin);
+        const esAtrasada   = act.estado === 'pendiente' || (fin < today && !esCompletada);
         return (
           <Box key={act.id} sx={{ display: 'flex', alignItems: 'flex-start', mb: 2, position: 'relative', zIndex: 1 }}>
             {/* Dot */}
             <Box sx={{
               width: 12, height: 12, borderRadius: '50%', flexShrink: 0, mt: '4px',
-              bgcolor: act.fecha_fin ? 'success.main' : esAtrasada ? 'error.main' : 'primary.main',
+              bgcolor: esCompletada ? 'success.main' : esAtrasada ? 'error.main' : 'primary.main',
               border: '2px solid white',
               boxShadow: 1,
             }} />
             <Paper variant="outlined" sx={{ ml: 1.5, p: 1.5, flex: 1, borderRadius: 2 }}>
               <Stack direction="row" justifyContent="space-between" flexWrap="wrap" gap={0.5}>
                 <Typography variant="body2" fontWeight={600}>{act.titulo}</Typography>
-                {act.fecha_fin
+                {esCompletada
                   ? <Chip label="Finalizada" color="success" size="small" />
                   : esAtrasada
                   ? <Chip label="Atrasada" color="error" size="small" />
+                  : act.estado === 'en_progreso'
+                  ? <Chip label="En progreso" color="primary" size="small" />
                   : <Chip label="Pendiente" size="small" />
                 }
               </Stack>
@@ -263,6 +269,7 @@ export default function CronogramaPage() {
       responsable:           act.responsable ?? null,
       objetivo_general:      act.objetivo_general ?? '',
       objetivos_especificos: act.objetivos_especificos ?? '',
+      estado:                act.estado ?? 'pendiente',
       fecha_inicio:          act.fecha_inicio,
       fecha_fin_estimada:    act.fecha_fin_estimada,
       fecha_fin:             act.fecha_fin ?? null,
@@ -796,6 +803,17 @@ export default function CronogramaPage() {
                 value={actForm.fecha_fin_estimada}
                 onChange={e => setActForm(f => ({ ...f, fecha_fin_estimada: e.target.value }))}
               />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                select fullWidth label="Estado" size="small"
+                value={actForm.estado ?? 'pendiente'}
+                onChange={e => setActForm(f => ({ ...f, estado: e.target.value as EstadoActividadCronograma }))}
+              >
+                {(Object.keys(ESTADO_ACT_CRON_LABELS) as EstadoActividadCronograma[]).map(k => (
+                  <MenuItem key={k} value={k}>{ESTADO_ACT_CRON_LABELS[k]}</MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField

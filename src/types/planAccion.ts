@@ -85,3 +85,36 @@ export interface PlanAccionFilters {
   semestre?:  string;
   page?:      number;
 }
+
+// ─── Dashboard de Plan de Acción ──────────────────────────────────────────────
+export interface DashboardObjetivosCategoria {
+  categoria: CategoriaObjetivo;
+  label: string;
+  count: number;
+}
+
+export interface DashboardResponsable {
+  responsable_id: number | null;
+  responsable_nombre: string;
+  asignadas: number;
+  completadas: number;
+}
+
+export interface DashboardPlanAccion {
+  plan_id: number;
+  titulo: string;
+  semestre: string;
+  semillero: string;
+  estado: EstadoPlanAccion;
+  /** Distribución de objetivos por categoría */
+  objetivos_por_categoria: DashboardObjetivosCategoria[];
+  /** Porcentaje de actividades del cronograma completadas */
+  porcentaje_cronograma: number;
+  total_actividades_cronograma: number;
+  actividades_completadas: number;
+  /** Actividades a tiempo vs. atrasadas */
+  actividades_a_tiempo: number;
+  actividades_atrasadas: number;
+  /** Desglose por responsable */
+  por_responsable: DashboardResponsable[];
+}

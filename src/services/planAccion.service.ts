@@ -1,6 +1,6 @@
 // src/services/planAccion.service.ts
 import api from './api';
-import { PlanAccion, PlanAccionCreate, PlanAccionFilters } from '@/types/planAccion';
+import { PlanAccion, PlanAccionCreate, PlanAccionFilters, DashboardPlanAccion } from '@/types/planAccion';
 import { PaginatedResponse } from '@/types';
 
 function buildParams(filters: PlanAccionFilters) {
@@ -51,6 +51,11 @@ export const planAccionService = {
 
   async rechazar(id: number): Promise<PlanAccion> {
     const { data } = await api.post<PlanAccion>(`/core/plan-accion/${id}/rechazar/`);
+    return data;
+  },
+
+  async dashboard(id: number): Promise<DashboardPlanAccion> {
+    const { data } = await api.get<DashboardPlanAccion>(`/core/plan-accion/${id}/dashboard/`);
     return data;
   },
 };

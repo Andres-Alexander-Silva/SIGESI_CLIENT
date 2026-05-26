@@ -102,6 +102,24 @@ export const ESTADO_CRONOGRAMA_COLOR: Record<
   atrasada:    'warning',
 };
 
+// Estado de actividad de cronograma (según Swagger: pendiente | en_progreso | completada)
+export type EstadoActividadCronograma = 'pendiente' | 'en_progreso' | 'completada';
+
+export const ESTADO_ACT_CRON_LABELS: Record<EstadoActividadCronograma, string> = {
+  pendiente:   'Pendiente',
+  en_progreso: 'En progreso',
+  completada:  'Completada',
+};
+
+export const ESTADO_ACT_CRON_COLOR: Record<
+  EstadoActividadCronograma,
+  'default' | 'info' | 'success' | 'error' | 'warning' | 'primary'
+> = {
+  pendiente:   'default',
+  en_progreso: 'primary',
+  completada:  'success',
+};
+
 export interface ActividadCronograma {
   id: number;
   cronograma: number;
@@ -111,6 +129,7 @@ export interface ActividadCronograma {
   responsable_nombre?: string;
   objetivo_general?: string;
   objetivos_especificos?: string;
+  estado?: EstadoActividadCronograma;
   fecha_inicio: string;
   fecha_fin_estimada: string;
   fecha_fin?: string | null;
@@ -125,6 +144,7 @@ export interface ActividadCronogramaCreate {
   responsable?: number | null;
   objetivo_general?: string;
   objetivos_especificos?: string;
+  estado?: EstadoActividadCronograma;
   fecha_inicio: string;
   fecha_fin_estimada: string;
   fecha_fin?: string | null;

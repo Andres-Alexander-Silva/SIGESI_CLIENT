@@ -21,8 +21,10 @@ import AddCircleIcon      from '@mui/icons-material/AddCircle';
 import RemoveCircleIcon   from '@mui/icons-material/RemoveCircle';
 import ExpandMoreIcon     from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon     from '@mui/icons-material/ExpandLess';
+import BarChartIcon       from '@mui/icons-material/BarChart';
 
 import { useAuth }        from '@/context/AuthContext';
+import { useNavigate }    from 'react-router-dom';
 import { usePlanAccion }  from '@/hooks/usePlanAccion';
 import { semillerosService } from '@/services/core.service';
 import {
@@ -438,6 +440,7 @@ function ConfirmDialog({ open, title, message, color = 'error', onConfirm, onClo
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PlanAccionPage() {
   const { activeRole } = useAuth();
+  const navigate = useNavigate();
 
   const puedeEscribir = activeRole != null && ROLES_ESCRITURA.includes(activeRole);
   const puedeAprobar  = activeRole != null && ROLES_APROBADOR.includes(activeRole);
@@ -648,6 +651,15 @@ export default function PlanAccionPage() {
                       <Tooltip title="Ver detalle">
                         <IconButton size="small" onClick={() => setDetailPlan(plan)}>
                           <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Dashboard de métricas">
+                        <IconButton
+                          size="small" color="info"
+                          onClick={() => navigate(`/plan_accion/${plan.id}/dashboard`)}
+                        >
+                          <BarChartIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
 
