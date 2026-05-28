@@ -104,7 +104,7 @@ export default function EvaluacionesPage() {
   const isDirector = activeRole === "director_semillero";
 
   const canCreate = can("/evaluaciones_investigativas", "crear");
-  const canCalificar = can("/evaluaciones_investigativas", "actualizar");
+  const canCalificar = can("/evaluaciones_investigativas", "editar");
   const canDelete = can("/evaluaciones_investigativas", "eliminar");
 
   // ── Datos principales ──────────────────────────────────────────────────────
@@ -187,9 +187,9 @@ export default function EvaluacionesPage() {
           setEvaluadores(
             todos.filter(
               (u) =>
-                u.rol === "director_semillero" ||
-                u.rol === "director_grupo" ||
-                u.rol === "administrador",
+                u.roles.includes("director_semillero") ||
+                u.roles.includes("director_grupo") ||
+                u.roles.includes("administrador"),
             ),
           );
         })
