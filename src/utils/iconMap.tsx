@@ -32,6 +32,8 @@ import {
   CalendarMonthOutlined,
   RateReviewOutlined,
   TrackChangesOutlined,
+  PsychologyOutlined,
+  GradingOutlined,
 } from "@mui/icons-material";
 import { FaChartLine, FaTasks } from "react-icons/fa";
 
@@ -54,6 +56,20 @@ const MAP: Record<string, ReactElement> = {
   menu: <ListAltOutlined />,
   list: <ListAltOutlined />,
   listalt: <ListAltOutlined />,
+
+  // ── Competencias Investigativas ──────────────────────────────────────────
+  psychology: <PsychologyOutlined />,
+  competencias: <PsychologyOutlined />,
+  competenciasinvestigativas: <PsychologyOutlined />,
+
+  // ── Evaluaciones Investigativas ──────────────────────────────────────────
+  grading: <GradingOutlined />,
+  evaluacionesinvestigativas: <GradingOutlined />,
+
+  // ── Dashboard / Estadísticas de Competencias ─────────────────────────────
+  competenciasdashboard: <AnalyticsOutlined />,
+  estadisticasinvestigativas: <AnalyticsOutlined />,
+  competenciasestadisticas: <AnalyticsOutlined />,
 
   // ── Semilleros / Investigación ───────────────────────────────────────────
   semilleros: <GroupsOutlined />,
@@ -219,6 +235,9 @@ const URL_MAP: Record<string, ReactElement> = {
   plan_accion: <ListAltOutlined />,
   plan_estrategico: <TrackChangesOutlined />,
   cronograma: <CalendarMonthOutlined />,
+  competencias_investigativas: <PsychologyOutlined />,
+  evaluaciones_investigativas: <GradingOutlined />,
+  competencias_estadisticas: <AnalyticsOutlined />,
 };
 
 /**

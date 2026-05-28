@@ -47,22 +47,31 @@ const ESTADO_LABELS: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
-const CRONOGRAMA_CONFIG = {
+const CRONOGRAMA_CONFIG: Record<
+  string,
+  { label: string; color: "success" | "error" | "warning" | "default"; icon: React.ReactElement }
+> = {
   al_dia: {
     label: "Al día",
-    color: "success" as const,
+    color: "success",
     icon: <CheckCircleOutline sx={{ fontSize: 14 }} />,
   },
   atrasado: {
     label: "Atrasado",
-    color: "error" as const,
+    color: "error",
     icon: <ErrorOutline sx={{ fontSize: 14 }} />,
   },
   en_riesgo: {
     label: "En riesgo",
-    color: "warning" as const,
+    color: "warning",
     icon: <WarningAmberOutlined sx={{ fontSize: 14 }} />,
   },
+};
+
+const DEFAULT_CRON_CONFIG = {
+  label: "Sin estado",
+  color: "default" as const,
+  icon: <CheckCircleOutline sx={{ fontSize: 14 }} />,
 };
 
 const ESTADO_COLORS: Record<
@@ -257,7 +266,7 @@ export default function ProyectosTable({
               ) : (
                 filtered.map((proyecto) => {
                   const cronConfig =
-                    CRONOGRAMA_CONFIG[proyecto.estado_cronograma];
+                    CRONOGRAMA_CONFIG[proyecto.estado_cronograma] ?? DEFAULT_CRON_CONFIG;
                   const progreso =
                     proyecto.total_actividades > 0
                       ? Math.round(

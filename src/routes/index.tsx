@@ -33,6 +33,9 @@ import PlanAccionPage from "@/pages/core/PlanAccionPage";
 import PlanAccionDashboardPage from "@/pages/core/PlanAccionDashboardPage";
 import PlanEstrategicoPage from "@/pages/core/PlanEstrategicoPage";
 import CronogramaPage from "@/pages/core/CronogramaPage";
+import CompetenciasPage from "@/pages/core/CompetenciasPage";
+import EvaluacionesPage from "@/pages/core/EvaluacionesPage";
+import CompetenciasDashboardPage from "@/pages/core/CompetenciasDashboardPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -102,6 +105,18 @@ const router = createBrowserRouter([
               { path: "plan_accion/:id/dashboard", element: <PlanAccionDashboardPage /> },
               { path: "plan_estrategico", element: <PlanEstrategicoPage /> },
               { path: "cronograma", element: <CronogramaPage /> },
+              {
+                path: "competencias_investigativas",
+                element: <CompetenciasPage />,
+              },
+              {
+                path: "evaluaciones_investigativas",
+                element: <EvaluacionesPage />,
+              },
+              {
+                path: "competencias_estadisticas",
+                element: <CompetenciasDashboardPage />,
+              },
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
