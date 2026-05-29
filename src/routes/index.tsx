@@ -36,6 +36,7 @@ import CronogramaPage from "@/pages/core/CronogramaPage";
 import CompetenciasPage from "@/pages/core/CompetenciasPage";
 import EvaluacionesPage from "@/pages/core/EvaluacionesPage";
 import CompetenciasDashboardPage from "@/pages/core/CompetenciasDashboardPage";
+import PerfilInvestigativoPage from "@/pages/core/PerfilInvestigativoPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -116,6 +117,10 @@ const router = createBrowserRouter([
               {
                 path: "competencias_estadisticas",
                 element: <CompetenciasDashboardPage />,
+              },
+              {
+                path: "perfil_investigativo",
+                element: <PerfilInvestigativoPage />,
               },
 
               // Reportes

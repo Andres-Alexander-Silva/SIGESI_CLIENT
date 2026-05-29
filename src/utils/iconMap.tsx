@@ -34,6 +34,7 @@ import {
   TrackChangesOutlined,
   PsychologyOutlined,
   GradingOutlined,
+  AccountCircleOutlined,
 } from "@mui/icons-material";
 import { FaChartLine, FaTasks } from "react-icons/fa";
 
@@ -70,6 +71,11 @@ const MAP: Record<string, ReactElement> = {
   competenciasdashboard: <AnalyticsOutlined />,
   estadisticasinvestigativas: <AnalyticsOutlined />,
   competenciasestadisticas: <AnalyticsOutlined />,
+
+  // ── Perfil Investigativo ──────────────────────────────────────────────────
+  perfilinvestigativo: <AccountCircleOutlined />,
+  perfil: <AccountCircleOutlined />,
+  accountcircle: <AccountCircleOutlined />,
 
   // ── Semilleros / Investigación ───────────────────────────────────────────
   semilleros: <GroupsOutlined />,
@@ -238,6 +244,7 @@ const URL_MAP: Record<string, ReactElement> = {
   competencias_investigativas: <PsychologyOutlined />,
   evaluaciones_investigativas: <GradingOutlined />,
   competencias_estadisticas: <AnalyticsOutlined />,
+  perfil_investigativo: <AccountCircleOutlined />,
 };
 
 /**
