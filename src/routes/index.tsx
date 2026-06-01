@@ -37,6 +37,7 @@ import CompetenciasPage from "@/pages/core/CompetenciasPage";
 import EvaluacionesPage from "@/pages/core/EvaluacionesPage";
 import CompetenciasDashboardPage from "@/pages/core/CompetenciasDashboardPage";
 import PerfilInvestigativoPage from "@/pages/core/PerfilInvestigativoPage";
+import ConvocatoriasPage from "@/pages/core/ConvocatoriasPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -122,6 +123,7 @@ const router = createBrowserRouter([
                 path: "perfil_investigativo",
                 element: <PerfilInvestigativoPage />,
               },
+              { path: "convocatorias", element: <ConvocatoriasPage /> },
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
