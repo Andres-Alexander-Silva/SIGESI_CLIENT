@@ -100,6 +100,8 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export type TipoVinculacionDocente = 'catedratico' | 'ocasional' | 'planta';
+
 export interface UserAdmin {
   id: number;
   username: string;
@@ -113,6 +115,7 @@ export interface UserAdmin {
   roles: UserRole[];
   codigo_estudiantil?: string;
   programa_academico?: number | null;
+  tipo_vinculacion_docente?: TipoVinculacionDocente | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -18,25 +18,25 @@ export const evaluacionProyectoService = {
   }) =>
     api
       .get<EvaluacionProyecto[] | PaginatedResponse<EvaluacionProyecto>>(
-        "/core/evaluaciones/",
+        "/core/evaluaciones-proyecto/",
         { params },
       )
       .then((r) => extractList(r.data)),
 
   get: (id: number) =>
     api
-      .get<EvaluacionProyecto>(`/core/evaluaciones/${id}/`)
+      .get<EvaluacionProyecto>(`/core/evaluaciones-proyecto/${id}/`)
       .then((r) => r.data),
 
   create: (data: EvaluacionProyectoCreate) =>
     api
-      .post<EvaluacionProyecto>("/core/evaluaciones/", data)
+      .post<EvaluacionProyecto>("/core/evaluaciones-proyecto/", data)
       .then((r) => r.data),
 
   update: (id: number, data: Partial<EvaluacionProyectoCreate>) =>
     api
-      .patch<EvaluacionProyecto>(`/core/evaluaciones/${id}/`, data)
+      .patch<EvaluacionProyecto>(`/core/evaluaciones-proyecto/${id}/`, data)
       .then((r) => r.data),
 
-  remove: (id: number) => api.delete(`/core/evaluaciones/${id}/`),
+  remove: (id: number) => api.delete(`/core/evaluaciones-proyecto/${id}/`),
 };

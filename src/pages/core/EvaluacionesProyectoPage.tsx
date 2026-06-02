@@ -82,9 +82,9 @@ export default function EvaluacionesProyectoPage() {
   const theme = useTheme();
   const { can } = usePermissions();
 
-  const canCreate = can("/evaluaciones", "crear") || true;
-  const canEdit = can("/evaluaciones", "editar") || true;
-  const canDelete = can("/evaluaciones", "eliminar") || true;
+  const canCreate = can("/evaluaciones-proyecto", "crear") || true;
+  const canEdit = can("/evaluaciones-proyecto", "editar") || true;
+  const canDelete = can("/evaluaciones-proyecto", "eliminar") || true;
 
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionProyecto[]>([]);
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);

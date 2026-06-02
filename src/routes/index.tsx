@@ -38,6 +38,8 @@ import EvaluacionesPage from "@/pages/core/EvaluacionesPage";
 import CompetenciasDashboardPage from "@/pages/core/CompetenciasDashboardPage";
 import PerfilInvestigativoPage from "@/pages/core/PerfilInvestigativoPage";
 import ConvocatoriasPage from "@/pages/core/ConvocatoriasPage";
+import AnaliticaPage from "@/pages/core/AnaliticaPage";
+import AuditoriaPage from "@/pages/config/AuditoriaPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -124,6 +126,8 @@ const router = createBrowserRouter([
                 element: <PerfilInvestigativoPage />,
               },
               { path: "convocatorias", element: <ConvocatoriasPage /> },
+              { path: "analitica", element: <AnaliticaPage /> },
+              { path: "auditoria", element: <AuditoriaPage /> },
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },

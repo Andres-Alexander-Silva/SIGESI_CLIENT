@@ -28,7 +28,12 @@ import {
   Checkbox,
   FormGroup,
   FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+  Divider,
 } from "@mui/material";
+import { SchoolOutlined } from "@mui/icons-material";
 import {
   AddOutlined,
   EditOutlined,
@@ -39,7 +44,7 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { usersService } from "@/services/config.service";
-import { UserAdmin, UserRole } from "@/types";
+import { UserAdmin, UserRole, TipoVinculacionDocente } from "@/types";
 
 const ROLES: { value: UserRole; label: string }[] = [
   { value: "administrador", label: "Administrador" },
@@ -47,6 +52,12 @@ const ROLES: { value: UserRole; label: string }[] = [
   { value: "director_semillero", label: "Director de Semillero" },
   { value: "lider_estudiantil", label: "Líder Estudiantil" },
   { value: "estudiante", label: "Estudiante" },
+];
+
+const TIPOS_VINCULACION: { value: TipoVinculacionDocente; label: string; descripcion: string }[] = [
+  { value: "catedratico", label: "Catedrático", descripcion: "Todos los formatos + Informe Mensual Semillero" },
+  { value: "ocasional", label: "Ocasional", descripcion: "Todos los formatos + Informe Mensual Semillero" },
+  { value: "planta", label: "Profesor de Planta", descripcion: "Todos los formatos excepto Informe Mensual Semillero" },
 ];
 
 const EMPTY_FORM = {
@@ -60,6 +71,7 @@ const EMPTY_FORM = {
   codigo_estudiantil: "",
   telefono: "",
   roles: [] as UserRole[],
+  tipo_vinculacion_docente: "" as TipoVinculacionDocente | "",
   is_active: true,
   is_graduated: false,
 };
@@ -125,6 +137,7 @@ export default function UsersPage() {
       codigo_estudiantil: u.codigo_estudiantil ?? "",
       telefono: u.telefono ?? "",
       roles: Array.isArray(u.roles) ? (u.roles as UserRole[]) : [],
+      tipo_vinculacion_docente: (u.tipo_vinculacion_docente as TipoVinculacionDocente) ?? "",
       is_active: u.is_active,
       is_graduated: u.is_graduated,
     });
@@ -136,7 +149,13 @@ export default function UsersPage() {
     setForm((prev) => {
       const current = prev.roles || [];
       if (current.includes(role)) {
-        return { ...prev, roles: current.filter((r) => r !== role) };
+        const next = current.filter((r) => r !== role);
+        const clearVinculacion = role === "director_semillero" && !next.includes("director_semillero");
+        return {
+          ...prev,
+          roles: next,
+          ...(clearVinculacion ? { tipo_vinculacion_docente: "" } : {}),
+        };
       } else {
         return { ...prev, roles: [...current, role] };
       }
@@ -153,10 +172,18 @@ export default function UsersPage() {
       return;
     }
 
+    const esDirSemillero = form.roles.includes("director_semillero");
+    if (esDirSemillero && !form.tipo_vinculacion_docente) {
+      setFormError("Debe seleccionar el tipo de vinculación docente para el Director de Semillero.");
+      setSaving(false);
+      return;
+    }
+
     try {
       const payload: any = {
         ...form,
         roles: form.roles,
+        tipo_vinculacion_docente: esDirSemillero ? form.tipo_vinculacion_docente : null,
       };
 
       if (!editing) {
@@ -396,6 +423,19 @@ export default function UsersPage() {
                           />
                         ))}
                       </Box>
+                      {u.tipo_vinculacion_docente && u.roles?.includes("director_semillero") && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: "block",
+                            mt: 0.5,
+                            color: theme.palette.primary.main,
+                            fontStyle: "italic",
+                          }}
+                        >
+                          {TIPOS_VINCULACION.find((t) => t.value === u.tipo_vinculacion_docente)?.label ?? u.tipo_vinculacion_docente}
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="center">
                       <Chip
@@ -581,6 +621,58 @@ export default function UsersPage() {
                 ))}
               </FormGroup>
             </FormControl>
+
+            {/* ── Vinculación Docente (solo Director de Semillero) ─────── */}
+            {form.roles.includes("director_semillero") && (
+              <>
+                <Divider sx={{ gridColumn: "1 / -1", my: 0.5 }} />
+                <Box
+                  sx={{
+                    gridColumn: "1 / -1",
+                    bgcolor: theme.palette.mode === "dark"
+                      ? "rgba(200,16,46,0.08)"
+                      : "rgba(200,16,46,0.04)",
+                    border: `1px solid ${theme.palette.primary.main}33`,
+                    borderRadius: 2,
+                    p: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                    <SchoolOutlined sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Información de Vinculación Docente
+                    </Typography>
+                  </Box>
+                  <FormControl size="small" fullWidth required>
+                    <InputLabel>Tipo de Vinculación Docente *</InputLabel>
+                    <Select
+                      value={form.tipo_vinculacion_docente}
+                      label="Tipo de Vinculación Docente *"
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          tipo_vinculacion_docente: e.target.value as TipoVinculacionDocente,
+                        }))
+                      }
+                    >
+                      {TIPOS_VINCULACION.map((t) => (
+                        <MenuItem key={t.value} value={t.value}>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {t.label}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                              {t.descripcion}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Divider sx={{ gridColumn: "1 / -1", my: 0.5 }} />
+              </>
+            )}
 
             <FormControlLabel
               control={
