@@ -38,6 +38,9 @@ import EvaluacionesPage from "@/pages/core/EvaluacionesPage";
 import CompetenciasDashboardPage from "@/pages/core/CompetenciasDashboardPage";
 import PerfilInvestigativoPage from "@/pages/core/PerfilInvestigativoPage";
 import ConvocatoriasPage from "@/pages/core/ConvocatoriasPage";
+import EventosPage from "@/pages/core/EventosPage";
+import PostulacionesPage from "@/pages/core/PostulacionesPage";
+import ParticipacionesEventoPage from "@/pages/core/ParticipacionesEventoPage";
 import AnaliticaPage from "@/pages/core/AnaliticaPage";
 import AuditoriaPage from "@/pages/config/AuditoriaPage";
 
@@ -125,7 +128,10 @@ const router = createBrowserRouter([
                 path: "perfil_investigativo",
                 element: <PerfilInvestigativoPage />,
               },
+              { path: "eventos", element: <EventosPage /> },
               { path: "convocatorias", element: <ConvocatoriasPage /> },
+              { path: "postulaciones", element: <PostulacionesPage /> },
+              { path: "participaciones_evento", element: <ParticipacionesEventoPage /> },
               { path: "analitica", element: <AnaliticaPage /> },
               { path: "auditoria", element: <AuditoriaPage /> },
 

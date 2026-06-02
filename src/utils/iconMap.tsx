@@ -36,6 +36,7 @@ import {
   GradingOutlined,
   AccountCircleOutlined,
   ManageSearchOutlined,
+  BallotOutlined,
 } from "@mui/icons-material";
 import { FaChartLine, FaTasks } from "react-icons/fa";
 
@@ -126,6 +127,13 @@ const MAP: Record<string, ReactElement> = {
   trophy: <EmojiEventsOutlined />, // fa-trophy
   award: <EmojiEventsOutlined />,
   medal: <EmojiEventsOutlined />,
+
+  // ── Postulaciones / Participaciones ──────────────────────────────────────
+  postulaciones: <BallotOutlined />,
+  postulacion: <BallotOutlined />,
+  ballot: <BallotOutlined />,
+  participacioneseventos: <EmojiEventsOutlined />,
+  participaciones: <EmojiEventsOutlined />,
 
   // ── Auditoría / Seguridad ─────────────────────────────────────────────────
   auditoria: <ManageSearchOutlined />,
@@ -255,6 +263,9 @@ const URL_MAP: Record<string, ReactElement> = {
   perfil_investigativo: <AccountCircleOutlined />,
   analitica: <AnalyticsOutlined />,
   auditoria: <ManageSearchOutlined />,
+  eventos: <EventOutlined />,
+  postulaciones: <BallotOutlined />,
+  participaciones_evento: <EmojiEventsOutlined />,
 };
 
 /**
