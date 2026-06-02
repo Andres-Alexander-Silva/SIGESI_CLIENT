@@ -48,6 +48,16 @@ import {
 import { evaluacionProyectoService } from "@/services/evaluacionProyecto.service";
 import { proyectosService } from "@/services/core.service";
 import { usePermissions } from "@/context/PermissionsContext";
+import { useAuth } from "@/context/AuthContext";
+
+// Roles habilitados para evaluar un proyecto. El backend, además, exige que el
+// usuario sea el director del proyecto o de su semillero (o administrador):
+// la evaluación se registra automáticamente a nombre del usuario autenticado.
+const ROLES_EVALUADORES = [
+  "administrador",
+  "director_grupo",
+  "director_semillero",
+];
 
 const EMPTY_FORM: EvaluacionProyectoCreate = {
   proyecto: 0,
@@ -81,10 +91,19 @@ const ESTADO_COLORS: Record<
 export default function EvaluacionesProyectoPage() {
   const theme = useTheme();
   const { can } = usePermissions();
+  const { user, activeRole } = useAuth();
 
-  const canCreate = can("/evaluaciones-proyecto", "crear") || true;
-  const canEdit = can("/evaluaciones-proyecto", "editar") || true;
-  const canDelete = can("/evaluaciones-proyecto", "eliminar") || true;
+  // Solo quien puede evaluar ve el botón de crear; el backend valida además la
+  // relación director/proyecto. La evaluación se registra a nombre del usuario.
+  const canEvaluate = ROLES_EVALUADORES.includes(activeRole ?? "");
+  const evaluadorActual =
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
+    user?.email ||
+    "Usuario actual";
+
+  const canCreate = canEvaluate;
+  const canEdit = canEvaluate;
+  const canDelete = canEvaluate;
 
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionProyecto[]>([]);
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
@@ -410,6 +429,31 @@ export default function EvaluacionesProyectoPage() {
           {formError && (
             <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>
           )}
+
+          {!editing && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Solo el administrador o el director del proyecto (o de su semillero)
+              pueden evaluar. La evaluación se registrará a su nombre.
+            </Alert>
+          )}
+
+          <TextField
+            fullWidth
+            size="small"
+            margin="normal"
+            label="Evaluador"
+            value={
+              editing
+                ? editing.evaluador_nombre || `Evaluador ID: ${editing.evaluador}`
+                : evaluadorActual
+            }
+            disabled
+            helperText={
+              editing
+                ? "El evaluador no se puede cambiar."
+                : "Se asigna automáticamente al usuario autenticado."
+            }
+          />
 
           <FormControl size="small" fullWidth margin="normal" disabled={!!editing}>
             <InputLabel>Proyecto</InputLabel>

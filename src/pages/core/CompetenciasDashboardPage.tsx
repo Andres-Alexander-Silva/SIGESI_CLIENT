@@ -565,7 +565,8 @@ export default function CompetenciasDashboardPage() {
                         />
                       </Stack>
                       <Typography variant="caption" color="text.secondary">
-                        {comp.semillero_nombre ?? `Semillero #${comp.semillero}`}
+                        {comp.semillero?.nombre ??
+                          `Semillero #${comp.semillero?.id}`}
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={2.5} alignItems="center" flexWrap="wrap">

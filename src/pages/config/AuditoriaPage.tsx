@@ -53,6 +53,16 @@ const ROLES_LABEL: Record<string, string> = {
   estudiante: "Estudiante",
 };
 
+// Coincide con RegistroAuditoria.AccionChoices del backend.
+const ACCIONES_LABEL: Record<string, string> = {
+  acceso: "Acceso",
+  autenticacion: "Autenticación",
+  creacion: "Creación",
+  actualizacion: "Actualización",
+  eliminacion: "Eliminación",
+  consulta: "Consulta",
+};
+
 const EMPTY_FILTERS: AuditoriaFilters = {
   search: "",
   accion: "",
@@ -65,13 +75,27 @@ function accionColor(
   accion: string,
 ): "success" | "error" | "info" | "warning" | "default" {
   const a = accion?.toLowerCase() ?? "";
-  if (a.includes("crear") || a.includes("create")) return "success";
-  if (a.includes("eliminar") || a.includes("delete")) return "error";
-  if (a.includes("actualizar") || a.includes("update") || a.includes("editar"))
+  if (a.includes("creac") || a.includes("crear") || a.includes("create"))
+    return "success";
+  if (a.includes("elimin") || a.includes("delete")) return "error";
+  if (a.includes("actualiz") || a.includes("update") || a.includes("editar"))
     return "info";
-  if (a.includes("login") || a.includes("logout") || a.includes("auth"))
+  if (a.includes("consulta")) return "info";
+  if (
+    a.includes("autenticacion") ||
+    a.includes("acceso") ||
+    a.includes("login") ||
+    a.includes("logout") ||
+    a.includes("auth")
+  )
     return "default";
   return "warning";
+}
+
+/** Descripción legible derivada de los metadatos crudos de la petición. */
+function describir(log: RegistroAuditoria): string {
+  const base = [log.metodo_http, log.ruta].filter(Boolean).join(" ");
+  return log.status_code ? `${base} → ${log.status_code}` : base;
 }
 
 function formatFecha(iso: string): string {
@@ -118,7 +142,6 @@ export default function AuditoriaPage() {
   });
 
   const [detail, setDetail] = useState<RegistroAuditoria | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const isAdmin = activeRole === "administrador";
 
@@ -170,23 +193,12 @@ export default function AuditoriaPage() {
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
   const todayCount = logs.filter((l) => isToday(l.fecha)).length;
-  const uniqueIPs = new Set(logs.map((l) => l.ip_address).filter(Boolean)).size;
+  const uniqueIPs = new Set(logs.map((l) => l.ip).filter(Boolean)).size;
   const uniqueModules = new Set(logs.map((l) => l.modulo).filter(Boolean)).size;
 
-  const openDetail = async (log: RegistroAuditoria) => {
-    setDetail(log);
-    if (log.detalles === undefined) {
-      setLoadingDetail(true);
-      try {
-        const full = await auditoriaService.get(log.id);
-        setDetail(full);
-      } catch {
-        // keep existing data
-      } finally {
-        setLoadingDetail(false);
-      }
-    }
-  };
+  // El listado ya trae los mismos campos que el detalle (mismo serializer),
+  // así que no hace falta una segunda petición.
+  const openDetail = (log: RegistroAuditoria) => setDetail(log);
 
   if (!isAdmin) {
     return (
@@ -343,16 +355,23 @@ export default function AuditoriaPage() {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="Acción"
-              size="small"
-              fullWidth
-              placeholder="ej: crear"
-              value={pendingFilters.accion}
-              onChange={(e) =>
-                setPendingFilters((f) => ({ ...f, accion: e.target.value }))
-              }
-            />
+            <FormControl size="small" fullWidth>
+              <InputLabel>Acción</InputLabel>
+              <Select
+                label="Acción"
+                value={pendingFilters.accion}
+                onChange={(e) =>
+                  setPendingFilters((f) => ({ ...f, accion: e.target.value }))
+                }
+              >
+                <MenuItem value="">Todas</MenuItem>
+                {Object.entries(ACCIONES_LABEL).map(([k, v]) => (
+                  <MenuItem key={k} value={k}>
+                    {v}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
@@ -496,7 +515,7 @@ export default function AuditoriaPage() {
                       </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.8rem" }}>
-                      {log.usuario_email || "—"}
+                      {log.usuario || "—"}
                     </TableCell>
                     <TableCell>
                       {log.rol_activo ? (
@@ -524,7 +543,7 @@ export default function AuditoriaPage() {
                     <TableCell>
                       {log.accion ? (
                         <Chip
-                          label={log.accion}
+                          label={ACCIONES_LABEL[log.accion] ?? log.accion}
                           size="small"
                           color={accionColor(log.accion)}
                           sx={{ height: 20, fontSize: "0.65rem" }}
@@ -549,13 +568,13 @@ export default function AuditoriaPage() {
                           overflow: "hidden",
                         }}
                       >
-                        {log.descripcion || "—"}
+                        {describir(log) || "—"}
                       </Typography>
                     </TableCell>
                     <TableCell
                       sx={{ fontSize: "0.75rem", color: theme.palette.text.disabled, whiteSpace: "nowrap" }}
                     >
-                      {log.ip_address || "—"}
+                      {log.ip || "—"}
                     </TableCell>
                     <TableCell>
                       <Tooltip title="Ver detalles">
@@ -599,34 +618,33 @@ export default function AuditoriaPage() {
           </Typography>
         </DialogTitle>
         <DialogContent dividers>
-          {loadingDetail ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress size={28} />
-            </Box>
-          ) : detail ? (
+          {detail ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {[
                 { label: "Fecha", value: detail.fecha ? new Date(detail.fecha).toLocaleString("es-CO") : "—" },
-                { label: "Usuario", value: detail.usuario_email || "—" },
+                { label: "Usuario", value: detail.usuario || "—" },
                 { label: "Rol activo", value: ROLES_LABEL[detail.rol_activo] ?? detail.rol_activo ?? "—" },
                 { label: "Módulo", value: detail.modulo || "—" },
-                { label: "Acción", value: detail.accion || "—" },
-                { label: "IP", value: detail.ip_address || "—" },
-                { label: "Descripción", value: detail.descripcion || "—" },
+                { label: "Acción", value: ACCIONES_LABEL[detail.accion] ?? detail.accion ?? "—" },
+                { label: "Método HTTP", value: detail.metodo_http || "—" },
+                { label: "Ruta", value: detail.ruta || "—" },
+                { label: "Código de estado", value: detail.status_code ? String(detail.status_code) : "—" },
+                { label: "ID del objeto", value: detail.object_id || "—" },
+                { label: "IP", value: detail.ip || "—" },
               ].map((row) => (
                 <Box key={row.label}>
                   <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {row.label}
                   </Typography>
-                  <Typography variant="body2">{row.value}</Typography>
+                  <Typography variant="body2" sx={{ wordBreak: "break-all" }}>{row.value}</Typography>
                 </Box>
               ))}
-              {detail.detalles && Object.keys(detail.detalles).length > 0 && (
+              {detail.user_agent && (
                 <>
                   <Divider />
                   <Box>
                     <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                      Detalles adicionales
+                      Agente de usuario
                     </Typography>
                     <Paper
                       variant="outlined"
@@ -638,17 +656,12 @@ export default function AuditoriaPage() {
                         overflowX: "auto",
                       }}
                     >
-                      <pre
-                        style={{
-                          margin: 0,
-                          fontSize: "0.72rem",
-                          fontFamily: "monospace",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-all",
-                        }}
+                      <Typography
+                        variant="caption"
+                        sx={{ fontFamily: "monospace", wordBreak: "break-all" }}
                       >
-                        {JSON.stringify(detail.detalles, null, 2)}
-                      </pre>
+                        {detail.user_agent}
+                      </Typography>
                     </Paper>
                   </Box>
                 </>

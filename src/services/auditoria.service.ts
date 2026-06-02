@@ -3,10 +3,15 @@ import { PaginatedResponse } from "@/types";
 import { RegistroAuditoria, AuditoriaFilters } from "@/types/auditoria";
 
 export const auditoriaService = {
+  // El endpoint envuelve la paginación en el sobre `{ success, data }`,
+  // así que desempaquetamos `data` para devolver el `PaginatedResponse` plano.
   list: (params?: Partial<AuditoriaFilters> & { page?: number; page_size?: number }) =>
     api
-      .get<PaginatedResponse<RegistroAuditoria>>("/config/auditoria/logs/", { params })
-      .then((r) => r.data),
+      .get<{ success: boolean; data: PaginatedResponse<RegistroAuditoria> }>(
+        "/config/auditoria/logs/",
+        { params },
+      )
+      .then((r) => r.data.data),
 
   get: (id: number) =>
     api

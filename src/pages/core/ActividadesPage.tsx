@@ -56,6 +56,7 @@ const ESTADOS: { value: EstadoActividad; label: string; color: string }[] = [
   { value: "en_progreso", label: "En Progreso", color: "#2196F3" },
   { value: "completada", label: "Completada", color: "#4CAF50" },
   { value: "cancelada", label: "Cancelada", color: "#757575" },
+  { value: "atrasada", label: "Atrasada", color: "#F44336" },
 ];
 
 const EMPTY_FORM: ActividadCreate = {
@@ -64,9 +65,9 @@ const EMPTY_FORM: ActividadCreate = {
   proyecto: 0,
   responsable: null,
   fecha_inicio: new Date().toISOString().split("T")[0],
-  fecha_fin_estimada: null,
+  fecha_fin: "",
   estado: "pendiente",
-  is_active: true,
+  porcentaje_avance: 0,
 };
 
 export default function ActividadesPage() {
@@ -146,6 +147,18 @@ export default function ActividadesPage() {
     if (!form.proyecto) errs.proyecto = "El proyecto es requerido.";
     if (!form.fecha_inicio)
       errs.fecha_inicio = "La fecha de inicio es requerida.";
+    if (!form.fecha_fin) errs.fecha_fin = "La fecha de fin es requerida.";
+    if (
+      form.fecha_inicio &&
+      form.fecha_fin &&
+      form.fecha_inicio > form.fecha_fin
+    )
+      errs.fecha_fin = "La fecha de fin no puede ser anterior a la de inicio.";
+    if (
+      form.porcentaje_avance != null &&
+      (form.porcentaje_avance < 0 || form.porcentaje_avance > 100)
+    )
+      errs.porcentaje_avance = "El porcentaje debe estar entre 0 y 100.";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -159,9 +172,9 @@ export default function ActividadesPage() {
         proyecto: act.proyecto,
         responsable: act.responsable ?? null,
         fecha_inicio: act.fecha_inicio,
-        fecha_fin_estimada: act.fecha_fin_estimada ?? null,
+        fecha_fin: act.fecha_fin,
         estado: act.estado,
-        is_active: act.is_active,
+        porcentaje_avance: act.porcentaje_avance,
       });
     } else {
       setEditing(null);
@@ -222,7 +235,7 @@ export default function ActividadesPage() {
   const filtered = actividades.filter(
     (a) =>
       a.titulo.toLowerCase().includes(search.toLowerCase()) ||
-      (a.proyecto_nombre ?? "").toLowerCase().includes(search.toLowerCase()),
+      (a.proyecto_titulo ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const paginated = filtered.slice(
@@ -412,7 +425,7 @@ export default function ActividadesPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {act.proyecto_nombre ?? `Proyecto #${act.proyecto}`}
+                          {act.proyecto_titulo ?? `Proyecto #${act.proyecto}`}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -434,7 +447,7 @@ export default function ActividadesPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {act.fecha_fin_estimada ?? "—"}
+                          {act.fecha_fin ?? "—"}
                         </Typography>
                       </TableCell>
                       {!isStudent && (
@@ -586,40 +599,61 @@ export default function ActividadesPage() {
                 fullWidth
               />
               <TextField
-                label="Fecha Fin Estimada"
+                label="Fecha Fin *"
                 type="date"
-                value={form.fecha_fin_estimada ?? ""}
+                value={form.fecha_fin}
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    fecha_fin_estimada: e.target.value || null,
-                  })
+                  setForm({ ...form, fecha_fin: e.target.value })
                 }
+                error={!!formErrors.fecha_fin}
+                helperText={formErrors.fecha_fin}
                 disabled={saving}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
               />
             </Box>
 
-            <FormControl fullWidth disabled={saving}>
-              <InputLabel>Estado</InputLabel>
-              <Select
-                label="Estado"
-                value={form.estado}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <FormControl fullWidth disabled={saving}>
+                <InputLabel>Estado</InputLabel>
+                <Select
+                  label="Estado"
+                  value={form.estado}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      estado: e.target.value as EstadoActividad,
+                    })
+                  }
+                >
+                  {ESTADOS.map((e) => (
+                    <MenuItem key={e.value} value={e.value}>
+                      {e.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="Porcentaje de avance"
+                type="number"
+                value={form.porcentaje_avance ?? 0}
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    estado: e.target.value as EstadoActividad,
+                    porcentaje_avance: e.target.value === "" ? 0 : Number(e.target.value),
                   })
                 }
-              >
-                {ESTADOS.map((e) => (
-                  <MenuItem key={e.value} value={e.value}>
-                    {e.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                error={!!formErrors.porcentaje_avance}
+                helperText={formErrors.porcentaje_avance}
+                disabled={saving}
+                inputProps={{ min: 0, max: 100 }}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                }}
+                fullWidth
+              />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

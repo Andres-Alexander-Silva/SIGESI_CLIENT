@@ -61,6 +61,7 @@ const EMPTY_FORM: CompetenciaInvestigativaCreate = {
   nombre: "",
   descripcion: "",
   nivel: "basico",
+  indicadores: "",
   semillero: 0,
   is_active: true,
 };
@@ -131,6 +132,8 @@ export default function CompetenciasPage() {
     if (!form.descripcion.trim())
       errs.descripcion = "La descripción es requerida.";
     if (!form.nivel) errs.nivel = "El nivel es requerido.";
+    if (!form.indicadores.trim())
+      errs.indicadores = "Los indicadores de logro son requeridos.";
     if (!form.semillero) errs.semillero = "El semillero es requerido.";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
@@ -143,7 +146,8 @@ export default function CompetenciasPage() {
         nombre: comp.nombre,
         descripcion: comp.descripcion,
         nivel: comp.nivel,
-        semillero: comp.semillero,
+        indicadores: comp.indicadores,
+        semillero: comp.semillero.id,
         is_active: comp.is_active,
       });
     } else {
@@ -205,7 +209,7 @@ export default function CompetenciasPage() {
   const filtered = competencias.filter(
     (c) =>
       c.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      (c.semillero_nombre ?? "").toLowerCase().includes(search.toLowerCase()),
+      (c.semillero?.nombre ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const paginated = filtered.slice(
@@ -404,7 +408,8 @@ export default function CompetenciasPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {comp.semillero_nombre ?? `Semillero #${comp.semillero}`}
+                          {comp.semillero?.nombre ??
+                            `Semillero #${comp.semillero?.id}`}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -509,6 +514,23 @@ export default function CompetenciasPage() {
               }
               error={!!formErrors.descripcion}
               helperText={formErrors.descripcion}
+              disabled={saving}
+              multiline
+              rows={3}
+              fullWidth
+            />
+
+            <TextField
+              label="Indicadores de logro *"
+              value={form.indicadores}
+              onChange={(e) =>
+                setForm({ ...form, indicadores: e.target.value })
+              }
+              error={!!formErrors.indicadores}
+              helperText={
+                formErrors.indicadores ??
+                "Criterios observables que evidencian el dominio de la competencia."
+              }
               disabled={saving}
               multiline
               rows={3}

@@ -7,17 +7,21 @@ export interface CompetenciaInvestigativa {
   nombre: string;
   descripcion: string;
   nivel: NivelCompetencia;
-  semillero: number;
-  semillero_nombre?: string;
+  /** Indicadores de logro (texto). Requerido por el backend. */
+  indicadores: string;
+  /** En lectura el backend embebe el objeto del semillero (no solo el id). */
+  semillero: { id: number; nombre: string };
   is_active: boolean;
-  fecha_creacion: string;
-  fecha_actualizacion: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CompetenciaInvestigativaCreate {
   nombre: string;
   descripcion: string;
   nivel: NivelCompetencia;
+  /** Indicadores de logro (texto). Requerido por el backend. */
+  indicadores: string;
   semillero: number;
   is_active?: boolean;
 }

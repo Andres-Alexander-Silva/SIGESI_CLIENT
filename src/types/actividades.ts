@@ -4,20 +4,21 @@ export type EstadoActividad =
   | "pendiente"
   | "en_progreso"
   | "completada"
-  | "cancelada";
+  | "cancelada"
+  | "atrasada";
 
 export interface Actividad {
   id: number;
   titulo: string;
   descripcion: string;
   proyecto: number;
-  proyecto_nombre?: string;
+  proyecto_titulo?: string;
   responsable?: number | null;
   responsable_nombre?: string;
   fecha_inicio: string;
-  fecha_fin_estimada?: string | null;
+  fecha_fin: string;
   estado: EstadoActividad;
-  is_active: boolean;
+  porcentaje_avance: number;
   created_at: string;
   updated_at: string;
 }
@@ -28,9 +29,9 @@ export interface ActividadCreate {
   proyecto: number;
   responsable?: number | null;
   fecha_inicio: string;
-  fecha_fin_estimada?: string | null;
+  fecha_fin: string;
   estado?: EstadoActividad;
-  is_active?: boolean;
+  porcentaje_avance?: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
