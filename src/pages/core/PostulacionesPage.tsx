@@ -49,8 +49,7 @@ import {
   postulacionesService,
   convocatoriasService,
 } from "@/services/convocatorias.service";
-import { semillerosService } from "@/services/core.service";
-import { usersService } from "@/services/config.service";
+import { semillerosService, inscripcionesService } from "@/services/core.service";
 import { usePermissions } from "@/context/PermissionsContext";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -60,7 +59,12 @@ import {
   Convocatoria,
 } from "@/types/convocatorias";
 import { Semillero } from "@/types/core";
-import { UserAdmin } from "@/types";
+
+// Miembro matriculado de un semillero (origen válido de estudiantes a postular).
+interface MiembroSemillero {
+  id: number;
+  nombre: string;
+}
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -119,7 +123,9 @@ export default function PostulacionesPage() {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [semilleros, setSemilleros] = useState<Semillero[]>([]);
-  const [usuarios, setUsuarios] = useState<UserAdmin[]>([]);
+  // Estudiantes matriculados en el semillero elegido (no usuarios globales).
+  const [miembros, setMiembros] = useState<MiembroSemillero[]>([]);
+  const [loadingMiembros, setLoadingMiembros] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -161,17 +167,15 @@ export default function PostulacionesPage() {
       if (filterConvocatoria) params.convocatoria = Number(filterConvocatoria);
       if (search) params.search = search;
 
-      const [posts, convs, sems, users] = await Promise.allSettled([
+      const [posts, convs, sems] = await Promise.allSettled([
         postulacionesService.list(params),
         convocatoriasService.list(),
         semillerosService.list(),
-        usersService.listByRol("estudiante"),
       ]);
 
       setPostulaciones(posts.status === "fulfilled" ? posts.value : []);
       setConvocatorias(convs.status === "fulfilled" ? convs.value : []);
       setSemilleros(sems.status === "fulfilled" ? sems.value : []);
-      setUsuarios(users.status === "fulfilled" ? users.value : []);
     } catch {
       setError("No se pudieron cargar las postulaciones.");
     } finally {
@@ -183,10 +187,54 @@ export default function PostulacionesPage() {
     load();
   }, [load]);
 
+  // Carga los estudiantes matriculados (activos) del semillero elegido, que son
+  // los únicos válidos para postular según el backend.
+  useEffect(() => {
+    if (!formOpen || !form.semillero) {
+      setMiembros([]);
+      return;
+    }
+    let cancelado = false;
+    setLoadingMiembros(true);
+    inscripcionesService
+      .list({ semillero_id: Number(form.semillero) })
+      .then((data: unknown) => {
+        if (cancelado) return;
+        const rows = (Array.isArray(data) ? data : (data as { results?: unknown[] })?.results ?? []) as Array<{
+          estudiante?: number;
+          estudiante_nombre?: string;
+          estado?: string;
+        }>;
+        const vistos = new Set<number>();
+        const opts: MiembroSemillero[] = [];
+        for (const r of rows) {
+          if (r.estado !== "activa" || !r.estudiante || vistos.has(r.estudiante))
+            continue;
+          vistos.add(r.estudiante);
+          opts.push({
+            id: r.estudiante,
+            nombre: r.estudiante_nombre ?? `Estudiante #${r.estudiante}`,
+          });
+        }
+        setMiembros(opts);
+      })
+      .catch(() => {
+        if (!cancelado) setMiembros([]);
+      })
+      .finally(() => {
+        if (!cancelado) setLoadingMiembros(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [formOpen, form.semillero]);
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.convocatoria) errs.convocatoria = "La convocatoria es requerida.";
     if (!form.semillero) errs.semillero = "El semillero es requerido.";
+    if (form.estudiantes.length === 0)
+      errs.estudiantes = "Seleccione al menos un estudiante matriculado.";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -774,7 +822,8 @@ export default function PostulacionesPage() {
                 label="Semillero *"
                 value={form.semillero}
                 onChange={(e) =>
-                  setForm({ ...form, semillero: e.target.value })
+                  // Al cambiar de semillero, los estudiantes previos dejan de ser válidos.
+                  setForm({ ...form, semillero: e.target.value, estudiantes: [] })
                 }
               >
                 {semilleros.map((s) => (
@@ -794,10 +843,14 @@ export default function PostulacionesPage() {
               )}
             </FormControl>
 
-            <FormControl fullWidth disabled={saving}>
-              <InputLabel>Estudiantes postulados</InputLabel>
+            <FormControl
+              fullWidth
+              disabled={saving || !form.semillero || loadingMiembros}
+              error={!!formErrors.estudiantes}
+            >
+              <InputLabel>Estudiantes postulados *</InputLabel>
               <Select
-                label="Estudiantes postulados"
+                label="Estudiantes postulados *"
                 multiple
                 value={form.estudiantes}
                 onChange={(e) =>
@@ -808,27 +861,31 @@ export default function PostulacionesPage() {
                 }
                 renderValue={(selected) =>
                   (selected as number[])
-                    .map((id) => {
-                      const u = usuarios.find((u) => u.id === id);
-                      return u ? `${u.first_name} ${u.last_name}` : id;
-                    })
+                    .map((id) => miembros.find((m) => m.id === id)?.nombre ?? id)
                     .join(", ")
                 }
               >
-                {usuarios.map((u) => (
-                  <MenuItem key={u.id} value={u.id}>
-                    {u.first_name} {u.last_name}
-                    <Typography
-                      component="span"
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ ml: 0.75 }}
-                    >
-                      ({u.email})
-                    </Typography>
+                {miembros.map((m) => (
+                  <MenuItem key={m.id} value={m.id}>
+                    {m.nombre}
                   </MenuItem>
                 ))}
               </Select>
+              <Typography
+                variant="caption"
+                color={formErrors.estudiantes ? "error" : "text.secondary"}
+                sx={{ mt: 0.5, ml: 1.75 }}
+              >
+                {formErrors.estudiantes
+                  ? formErrors.estudiantes
+                  : !form.semillero
+                    ? "Seleccione un semillero primero."
+                    : loadingMiembros
+                      ? "Cargando estudiantes matriculados…"
+                      : miembros.length === 0
+                        ? "Este semillero no tiene estudiantes matriculados activos."
+                        : "Solo se listan estudiantes matriculados en el semillero."}
+              </Typography>
             </FormControl>
 
             <TextField
