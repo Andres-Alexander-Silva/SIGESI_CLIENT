@@ -56,6 +56,7 @@ import {
   Evento,
 } from "@/types/convocatorias";
 import { UserAdmin } from "@/types";
+import { validateFileSize, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -265,6 +266,11 @@ export default function ParticipacionesEventoPage() {
 
   const handleUploadCertificado = async (file: File) => {
     if (!uploadTarget) return;
+    const sizeError = validateFileSize(file);
+    if (sizeError) {
+      setUploadError(sizeError);
+      return;
+    }
     setUploading(true);
     setUploadError(null);
     try {
@@ -276,7 +282,7 @@ export default function ParticipacionesEventoPage() {
       setUploadOpen(false);
       await load();
     } catch {
-      setUploadError("No se pudo subir el certificado. Verifica el formato y tamaño (máx. 5 MB).");
+      setUploadError(`No se pudo subir el certificado. Verifica el formato y tamaño (máx. ${MAX_UPLOAD_SIZE_MB} MB).`);
     } finally {
       setUploading(false);
     }
@@ -862,7 +868,7 @@ export default function ParticipacionesEventoPage() {
             )}
             {uploadError && <Alert severity="error">{uploadError}</Alert>}
             <Typography variant="body2" color="text.secondary">
-              Formatos permitidos: PDF, JPG, PNG, DOCX, XLSX. Tamaño máximo: 5 MB.
+              Formatos permitidos: PDF, JPG, PNG, DOCX, XLSX. Tamaño máximo: {MAX_UPLOAD_SIZE_MB} MB.
             </Typography>
             <input
               ref={fileInputRef}

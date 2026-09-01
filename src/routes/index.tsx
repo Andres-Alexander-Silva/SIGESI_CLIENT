@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
 import LoginPage from "@/pages/LoginPage";
 import PasswordRecoveryPage from "@/pages/PasswordRecoveryPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
@@ -133,16 +134,21 @@ const router = createBrowserRouter([
               { path: "postulaciones", element: <PostulacionesPage /> },
               { path: "participaciones_evento", element: <ParticipacionesEventoPage /> },
               { path: "analitica", element: <AnaliticaPage /> },
-              { path: "auditoria", element: <AuditoriaPage /> },
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
 
-              // Configuración
-              { path: "configuracion/usuarios", element: <UsersPage /> },
-              { path: "configuracion/menus", element: <MenusPage /> },
-              { path: "configuracion/opciones", element: <OpcionesPage /> },
-              { path: "configuracion/permisos", element: <PermisosPage /> },
+              // Rutas administrativas: solo rol `administrador` (ver AdminRoute)
+              {
+                element: <AdminRoute />,
+                children: [
+                  { path: "auditoria", element: <AuditoriaPage /> },
+                  { path: "configuracion/usuarios", element: <UsersPage /> },
+                  { path: "configuracion/menus", element: <MenusPage /> },
+                  { path: "configuracion/opciones", element: <OpcionesPage /> },
+                  { path: "configuracion/permisos", element: <PermisosPage /> },
+                ],
+              },
 
               // Fallback interno
               { path: "*", element: <Navigate to="/dashboard" replace /> },

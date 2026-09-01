@@ -66,6 +66,7 @@ import {
   LineaInvestigacion,
 } from "@/types/core";
 import { UserAdmin } from "@/types";
+import { validateFileSize } from "@/utils/fileValidation";
 
 const CURRENT_SEMESTER = "2026-1";
 
@@ -973,7 +974,19 @@ export default function SemillerosPage() {
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
                 style={{ display: "none" }}
-                onChange={(e) => setAvalFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  if (file) {
+                    const sizeError = validateFileSize(file);
+                    if (sizeError) {
+                      setAvalError(sizeError);
+                      e.target.value = "";
+                      return;
+                    }
+                  }
+                  setAvalError("");
+                  setAvalFile(file);
+                }}
               />
               <Box
                 onClick={() => avalFileRef.current?.click()}

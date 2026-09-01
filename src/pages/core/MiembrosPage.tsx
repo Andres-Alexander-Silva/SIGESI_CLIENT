@@ -59,6 +59,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Semillero } from "@/types/core";
 import { UserAdmin } from "@/types";
 import api from "@/services/api";
+import { validateFileSize } from "@/utils/fileValidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos locales
@@ -184,6 +185,7 @@ export default function MiembrosPage() {
   // ── Diálogo carga masiva ─────────────────────────────────────────────────
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkFileError, setBulkFileError] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState<BulkResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -420,6 +422,7 @@ export default function MiembrosPage() {
   const closeBulk = () => {
     setBulkOpen(false);
     setBulkFile(null);
+    setBulkFileError("");
     setBulkResult(null);
   };
 
@@ -1129,7 +1132,20 @@ export default function MiembrosPage() {
               type="file"
               accept=".xlsx,.xls"
               style={{ display: "none" }}
-              onChange={(e) => setBulkFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file) {
+                  const sizeError = validateFileSize(file);
+                  if (sizeError) {
+                    setBulkFileError(sizeError);
+                    setBulkFile(null);
+                    e.target.value = "";
+                    return;
+                  }
+                }
+                setBulkFileError("");
+                setBulkFile(file);
+              }}
             />
             {bulkFile ? (
               <>
@@ -1157,6 +1173,12 @@ export default function MiembrosPage() {
               </>
             )}
           </Box>
+
+          {bulkFileError && (
+            <Alert severity="error" sx={{ mt: 1.5 }} onClose={() => setBulkFileError("")}>
+              {bulkFileError}
+            </Alert>
+          )}
 
           {/* Resultado de la carga */}
           {bulkResult && (

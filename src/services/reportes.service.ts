@@ -61,7 +61,7 @@ export interface ReporteSemillero {
 export interface Informe {
   id: number;
   titulo: string;
-  tipo: "semestral" | "anual" | "especial";
+  tipo: "mensual" | "semestral" | "anual" | "especial";
   semestre: string;
   contenido?: string;
   archivo?: string | null;
@@ -75,7 +75,7 @@ export interface Informe {
 
 export interface InformeCreateInput {
   titulo: string;
-  tipo: "semestral" | "anual" | "especial";
+  tipo: "mensual" | "semestral" | "anual" | "especial";
   semestre: string;
   semillero: number;
   estado?: "borrador" | "generado" | "revisado" | "aprobado";
