@@ -52,6 +52,7 @@ import { cronogramaProyectoService } from "@/services/cronogramaProyecto.service
 import { proyectosService } from "@/services/core.service";
 import { usePermissions } from "@/context/PermissionsContext";
 import { downloadFile } from "@/utils/downloadFile";
+import { validateFileSize } from "@/utils/fileValidation";
 
 const EMPTY_FORM: Omit<CronogramaProyectoCreate, "proyecto"> = {
   actividad: "",
@@ -125,6 +126,11 @@ export default function CronogramaProyectoPage() {
     item: CronogramaProyecto,
     file: File,
   ) => {
+    const sizeError = validateFileSize(file);
+    if (sizeError) {
+      setError(sizeError);
+      return;
+    }
     setUploadingId(item.id);
     try {
       await cronogramaProyectoService.archiveUpload(item.id, file, {
@@ -727,9 +733,16 @@ export default function CronogramaProyectoPage() {
                 type="file"
                 hidden
                 onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    setFileInput(e.target.files[0]);
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const sizeError = validateFileSize(file);
+                  if (sizeError) {
+                    setFormError(sizeError);
+                    e.target.value = "";
+                    return;
                   }
+                  setFormError("");
+                  setFileInput(file);
                 }}
               />
             </Button>

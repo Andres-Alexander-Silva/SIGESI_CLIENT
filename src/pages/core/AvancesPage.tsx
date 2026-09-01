@@ -71,6 +71,7 @@ import {
 } from "@/types/actividades";
 import { Proyecto } from "@/types/core";
 import { UserAdmin } from "@/types";
+import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
@@ -87,7 +88,7 @@ const ESTADOS: {
   { value: "rechazado", label: "Rechazado", color: "#F44336" },
 ];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = MAX_UPLOAD_SIZE_BYTES;
 const ALLOWED_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -247,7 +248,7 @@ export default function AvancesPage() {
     if (!file) return null;
     if (!ALLOWED_TYPES.includes(file.type))
       return `Tipo no permitido. Usa: ${ALLOWED_LABELS.join(", ")}`;
-    if (file.size > MAX_FILE_SIZE) return "El archivo supera los 5 MB.";
+    if (file.size > MAX_FILE_SIZE) return `El archivo supera los ${MAX_UPLOAD_SIZE_MB} MB.`;
     return null;
   };
 
