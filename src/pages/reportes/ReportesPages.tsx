@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, type DependencyList } from "react";
 import {
   Box,
   Button,
@@ -41,6 +41,16 @@ import {
   Analytics as AnalyticsIcon,
 } from "@mui/icons-material";
 
+import { reportesService } from "@/services/reportes.service";
+import type {
+  DashboardIndicadores,
+  ReporteProyecto,
+  ReporteSemillero,
+  Informe,
+  PaginatedResponse,
+} from "@/services/reportes.service";
+import { formatApiError } from "@/utils/apiError";
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 type UserRole =
@@ -50,75 +60,7 @@ type UserRole =
   | "lider_estudiantil"
   | "estudiante";
 
-interface DashboardIndicadores {
-  scope: string;
-  semestre: string;
-  proyectos_activos: number;
-  estudiantes_activos: number;
-  produccion_academica: number;
-  actividades_completadas: number;
-  cumplimiento_semestral: number;
-  evaluaciones_registradas: number;
-}
-
-interface ReporteProyecto {
-  id: number;
-  titulo: string;
-  codigo: string;
-  estado:
-    | "idea"
-    | "propuesta"
-    | "en_ejecucion"
-    | "en_resultados"
-    | "cerrado"
-    | "cancelado";
-  fecha_inicio: string | null;
-  fecha_cierre: string | null;
-  director?: { id: number; username: string; nombre_completo: string };
-  lider?: { id: number; username: string; nombre_completo: string };
-  total_actividades: number;
-  actividades_completadas: number;
-  avance_global: number;
-  cantidad_producciones: number;
-  estudiantes_activos_count: number;
-}
-
-interface ReporteSemillero {
-  id: number;
-  nombre: string;
-  codigo: string;
-  fecha_creacion: string;
-  director?: { id: number; username: string; nombre_completo: string };
-  total_proyectos: number;
-  proyectos_activos: number;
-  total_matriculas: number;
-  total_producciones: number;
-}
-
-interface Informe {
-  id: number;
-  titulo: string;
-  tipo: "semestral" | "anual" | "especial";
-  semestre: string;
-  contenido?: string;
-  archivo?: string | null;
-  estado: "borrador" | "generado" | "revisado" | "aprobado";
-  fecha_generacion: string;
-  created_at: string;
-  semillero: number;
-  generado_por?: number | null;
-}
-
-interface PaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
-
 // ─── Constantes & helpers ─────────────────────────────────────────────────────
-
-const API_BASE = "https://sigesi-api.onrender.com/api/v1";
 
 const SEMESTRES = ["2025-1", "2025-2", "2024-1", "2024-2", "2023-1", "2023-2"];
 
@@ -144,6 +86,7 @@ const ESTADO_PROYECTO_COLOR: Record<
 };
 
 const TIPO_INFORME_LABEL: Record<string, string> = {
+  mensual: "Mensual",
   semestral: "Semestral",
   anual: "Anual",
   especial: "Especial",
@@ -172,10 +115,12 @@ function fmtDate(d: string | null) {
 }
 
 // ─── Hook de API ──────────────────────────────────────────────────────────────
+// Usa el cliente axios centralizado (services/api.ts): token inyectado y
+// refresco automático en 401 vía sus interceptores, en vez de `fetch` crudo.
 
-function useApi<T>(
-  url: string | null,
-  token: string,
+function useApiCall<T>(
+  fetcher: (() => Promise<T>) | null,
+  deps: DependencyList,
 ): {
   data: T | null;
   loading: boolean;
@@ -190,22 +135,16 @@ function useApi<T>(
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   useEffect(() => {
-    if (!url) return;
+    if (!fetcher) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(`${API_BASE}${url}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error(`Error ${r.status}: ${r.statusText}`);
-        return r.json();
-      })
+    fetcher()
       .then((d) => {
         if (!cancelled) setData(d);
       })
       .catch((e) => {
-        if (!cancelled) setError(e.message);
+        if (!cancelled) setError(formatApiError(e, "No se pudo cargar la información."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -214,7 +153,7 @@ function useApi<T>(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, token, tick]);
+  }, [...deps, tick]);
 
   return { data, loading, error, refetch };
 }
@@ -352,16 +291,16 @@ function VistaEstudiante({ token }: { token: string }) {
     return () => clearTimeout(t);
   }, [search]);
 
-  const queryStr = useMemo(() => {
-    const p = new URLSearchParams();
-    p.set("page", String(page + 1));
-    if (debouncedSearch) p.set("search", debouncedSearch);
-    return p.toString();
-  }, [page, debouncedSearch]);
-
-  const { data, loading, error, refetch } = useApi<
+  const { data, loading, error, refetch } = useApiCall<
     PaginatedResponse<ReporteProyecto>
-  >(`/reportes/proyectos/?${queryStr}`, token);
+  >(
+    () =>
+      reportesService.getReporteProyectos({
+        page: page + 1,
+        search: debouncedSearch || undefined,
+      }),
+    [page, debouncedSearch],
+  );
 
   return (
     <Stack spacing={3}>
@@ -519,28 +458,27 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
   }, [search]);
 
   // Dashboard
-  const dashParams = semestre ? `?semestre=${semestre}` : "";
   const { data: dashboard, loading: loadingDash } =
-    useApi<DashboardIndicadores>(`/core/dashboard/${dashParams}`, token);
+    useApiCall<DashboardIndicadores>(
+      () => reportesService.getDashboard({ semestre: semestre || undefined }),
+      [semestre],
+    );
 
   // Proyectos
-  const proyectosParams = useMemo(() => {
-    const p = new URLSearchParams();
-    p.set("page", String(page + 1));
-    if (debouncedSearch) p.set("search", debouncedSearch);
-    return p.toString();
-  }, [page, debouncedSearch]);
-
   const {
     data: proyectosData,
     loading: loadingProyectos,
     error: errorProyectos,
     refetch: refetchProyectos,
-  } = useApi<PaginatedResponse<ReporteProyecto>>(
+  } = useApiCall<PaginatedResponse<ReporteProyecto>>(
     tabActiva === "proyectos"
-      ? `/reportes/proyectos/?${proyectosParams}`
+      ? () =>
+          reportesService.getReporteProyectos({
+            page: page + 1,
+            search: debouncedSearch || undefined,
+          })
       : null,
-    token,
+    [tabActiva, page, debouncedSearch],
   );
 
   // Semilleros
@@ -549,30 +487,29 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
     loading: loadingSemilleros,
     error: errorSemilleros,
     refetch: refetchSemilleros,
-  } = useApi<PaginatedResponse<ReporteSemillero>>(
+  } = useApiCall<PaginatedResponse<ReporteSemillero>>(
     tabActiva === "semilleros"
-      ? `/reportes/semilleros/?page=${page + 1}`
+      ? () => reportesService.getReporteSemilleros({ page: page + 1 })
       : null,
-    token,
+    [tabActiva, page],
   );
 
   // Informes
-  const informesParams = useMemo(() => {
-    const p = new URLSearchParams();
-    p.set("page", String(page + 1));
-    if (semestre) p.set("semestre", semestre);
-    if (debouncedSearch) p.set("search", debouncedSearch);
-    return p.toString();
-  }, [page, semestre, debouncedSearch]);
-
   const {
     data: informesData,
     loading: loadingInformes,
     error: errorInformes,
     refetch: refetchInformes,
-  } = useApi<PaginatedResponse<Informe>>(
-    tabActiva === "informes" ? `/reportes/?${informesParams}` : null,
-    token,
+  } = useApiCall<PaginatedResponse<Informe>>(
+    tabActiva === "informes"
+      ? () =>
+          reportesService.getInformes({
+            page: page + 1,
+            semestre: semestre || undefined,
+            search: debouncedSearch || undefined,
+          })
+      : null,
+    [tabActiva, page, semestre, debouncedSearch],
   );
 
   const handleTabChange = (t: typeof tabActiva) => {
@@ -586,23 +523,10 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const params = new URLSearchParams();
-      if (semestre) params.set("semestre", semestre);
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      const response = await fetch(
-        `${API_BASE}/reportes/exportar/?${params.toString()}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!response.ok) throw new Error(`Error ${response.status}`);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `reporte_semilleros_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      await reportesService.exportarExcel({
+        semestre: semestre || undefined,
+        search: debouncedSearch || undefined,
+      });
     } catch (e) {
       console.error("Error al exportar:", e);
     } finally {
@@ -1366,11 +1290,14 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
 
 function VistaAdministrador({ token }: { token: string }) {
   const { data: dashboard, loading: loadingDash } =
-    useApi<DashboardIndicadores>("/core/dashboard/?scope=administrador", token);
+    useApiCall<DashboardIndicadores>(
+      () => reportesService.getDashboard({ scope: "administrador" }),
+      [],
+    );
 
-  const { data: semillerosData, loading: loadingSemilleros } = useApi<
+  const { data: semillerosData, loading: loadingSemilleros } = useApiCall<
     PaginatedResponse<ReporteSemillero>
-  >("/reportes/semilleros/", token);
+  >(() => reportesService.getReporteSemilleros(), []);
 
   return (
     <Stack spacing={3}>

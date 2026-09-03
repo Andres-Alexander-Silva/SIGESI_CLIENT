@@ -9,6 +9,7 @@ import {
 } from "react";
 import { AuthState, LoginCredentials, UserRole } from "@/types";
 import { authService } from "@/services/auth.service";
+import { webSocketService } from "@/services/websocket.service";
 
 interface AuthContextType extends AuthState {
   /** Rol activo seleccionado por el usuario */
@@ -133,6 +134,7 @@ export function AuthProvider({ children, navigate }: AuthProviderProps) {
     if (state.tokens?.refresh) {
       await authService.logout(state.tokens.refresh).catch(() => {});
     }
+    webSocketService.disconnect();
     identityTokenRef.current = undefined;
     authService.clearAuth();
     setState({ user: null, tokens: null, isAuthenticated: false, isLoading: false });
