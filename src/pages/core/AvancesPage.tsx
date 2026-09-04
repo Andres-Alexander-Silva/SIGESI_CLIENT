@@ -125,8 +125,8 @@ export default function AvancesPage() {
   const isStudent =
     activeRole === "estudiante" || activeRole === "lider_estudiantil";
 
-  const canCreate = can("/avances", "crear") || isStudent;
-  const canEdit = can("/avances", "editar") || isStudent;
+  const canCreate = can("/avances", "crear");
+  const canEdit = can("/avances", "editar");
   const canDelete = can("/avances", "eliminar") && !isStudent;
 
   // ── Estado principal ────────────────────────────────────────────────────────

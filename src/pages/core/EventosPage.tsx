@@ -43,7 +43,6 @@ import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { eventosService } from "@/services/convocatorias.service";
 import { usePermissions } from "@/context/PermissionsContext";
-import { useAuth } from "@/context/AuthContext";
 import {
   Evento,
   EventoCreate,
@@ -97,20 +96,10 @@ export default function EventosPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const { can } = usePermissions();
-  const { activeRole } = useAuth();
 
-  const canCreate =
-    can("/eventos", "crear") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo";
-  const canEdit =
-    can("/eventos", "editar") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo";
-  const canDelete =
-    can("/eventos", "eliminar") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo";
+  const canCreate = can("/eventos", "crear");
+  const canEdit = can("/eventos", "editar");
+  const canDelete = can("/eventos", "eliminar");
 
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);

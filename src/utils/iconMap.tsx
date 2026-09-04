@@ -37,6 +37,7 @@ import {
   AccountCircleOutlined,
   ManageSearchOutlined,
   BallotOutlined,
+  TrendingUpOutlined,
 } from "@mui/icons-material";
 import { FaChartLine, FaTasks } from "react-icons/fa";
 
@@ -244,6 +245,8 @@ const URL_MAP: Record<string, ReactElement> = {
   semilleros: <ScienceOutlined />,
   grupos: <GroupsOutlined />,
   proyectos: <AssignmentOutlined />,
+  actividades: <AssignmentOutlined />,
+  avances: <TrendingUpOutlined />,
   produccion: <ArticleOutlined />,
   convocatorias: <CampaignOutlined />,
   reportes: <BarChartOutlined />,

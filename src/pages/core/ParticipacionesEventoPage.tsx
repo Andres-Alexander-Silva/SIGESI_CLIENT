@@ -48,7 +48,6 @@ import {
 } from "@/services/convocatorias.service";
 import { usersService } from "@/services/config.service";
 import { usePermissions } from "@/context/PermissionsContext";
-import { useAuth } from "@/context/AuthContext";
 import {
   ParticipacionEvento,
   ParticipacionEventoCreate,
@@ -99,20 +98,9 @@ export default function ParticipacionesEventoPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const { can } = usePermissions();
-  const { activeRole } = useAuth();
 
-  const canWrite =
-    can("/participaciones_evento", "crear") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo" ||
-    activeRole === "director_semillero" ||
-    activeRole === "lider_estudiantil";
-  const canDelete =
-    can("/participaciones_evento", "eliminar") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo" ||
-    activeRole === "director_semillero" ||
-    activeRole === "lider_estudiantil";
+  const canWrite = can("/participaciones_evento", "crear");
+  const canDelete = can("/participaciones_evento", "eliminar");
 
   // ─── Datos ───────────────────────────────────────────────────────────────
   const [participaciones, setParticipaciones] = useState<ParticipacionEvento[]>([]);
