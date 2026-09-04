@@ -36,48 +36,44 @@ export interface ActividadCreate {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Avances
+//
+// "Avance" es la nomenclatura de la UI; el recurso real en el backend es
+// `Evidencia` (archivo adjunto a una Actividad), sin flujo de aprobación.
+// Ver docs/HU-021_PLAN_IMPLEMENTACION.md, fase F0.
 // ─────────────────────────────────────────────────────────────────────────────
-export type EstadoAvance =
-  | "borrador"
-  | "enviado"
-  | "aprobado"
-  | "rechazado"
-  | "en_revision";
+export type TipoEvidencia =
+  | "documento"
+  | "acta"
+  | "fotografia"
+  | "video"
+  | "otro";
 
 export interface Avance {
   id: number;
-  descripcion: string;
-  fecha: string;
   actividad: number;
   actividad_titulo?: string;
-  proyecto?: number;
-  proyecto_nombre?: string;
-  estudiante?: number | null;
-  estudiante_nombre?: string;
-  evidencia?: string | null;
-  evidencia_nombre?: string | null;
-  estado: EstadoAvance;
-  observaciones?: string | null;
-  aprobado_por?: number | null;
-  aprobado_por_nombre?: string | null;
-  fecha_aprobacion?: string | null;
-  is_active: boolean;
+  proyecto_id?: number;
+  tipo: TipoEvidencia;
+  titulo: string;
+  descripcion: string;
+  archivo: string | null;
+  subido_por?: number | null;
+  subido_por_nombre?: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface AvanceCreate {
-  descripcion: string;
-  fecha: string;
   actividad: number;
-  evidencia?: File | null;
-  estado?: EstadoAvance;
+  tipo: TipoEvidencia;
+  titulo: string;
+  descripcion: string;
+  archivo: File;
 }
 
 export interface AvanceUpdate {
-  descripcion?: string;
-  fecha?: string;
   actividad?: number;
-  observaciones?: string;
-  estado?: EstadoAvance;
+  tipo?: TipoEvidencia;
+  titulo?: string;
+  descripcion?: string;
 }
