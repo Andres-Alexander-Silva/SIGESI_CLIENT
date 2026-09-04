@@ -100,7 +100,9 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
-export type TipoVinculacionDocente = 'catedratico' | 'ocasional' | 'planta';
+// Debe coincidir exactamente con User.TipoVinculacionChoices en el backend
+// (apps/sigesi/models.py, SIGESI_API) — no incluye 'ocasional'.
+export type TipoVinculacionDocente = 'catedratico' | 'planta';
 
 export interface UserAdmin {
   id: number;

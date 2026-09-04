@@ -56,7 +56,6 @@ const ROLES: { value: UserRole; label: string }[] = [
 
 const TIPOS_VINCULACION: { value: TipoVinculacionDocente; label: string; descripcion: string }[] = [
   { value: "catedratico", label: "Catedrático", descripcion: "Todos los formatos + Informe Mensual Semillero" },
-  { value: "ocasional", label: "Ocasional", descripcion: "Todos los formatos + Informe Mensual Semillero" },
   { value: "planta", label: "Profesor de Planta", descripcion: "Todos los formatos excepto Informe Mensual Semillero" },
 ];
 
