@@ -70,7 +70,7 @@ import {
 } from "@/types/actividades";
 import { Proyecto } from "@/types/core";
 import { UserAdmin } from "@/types";
-import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
+import { validateFile, EXTENSIONES_GENERALES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
@@ -86,15 +86,6 @@ const TIPOS: { value: TipoEvidencia; label: string; color: string }[] = [
   { value: "video", label: "Video", color: "#9C27B0" },
   { value: "otro", label: "Otro", color: "#9E9E9E" },
 ];
-
-const MAX_FILE_SIZE = MAX_UPLOAD_SIZE_BYTES;
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-const ALLOWED_LABELS = ["PDF", "JPG", "PNG", "DOCX"];
 
 interface AvanceFormState {
   actividad: number;
@@ -235,15 +226,6 @@ export default function AvancesPage() {
     documentos: avances.filter((a) => a.tipo === "documento").length,
     actas: avances.filter((a) => a.tipo === "acta").length,
     otros: avances.filter((a) => !["documento", "acta"].includes(a.tipo)).length,
-  };
-
-  // ── Validaciones ────────────────────────────────────────────────────────────
-  const validateFile = (file: File | null): string | null => {
-    if (!file) return null;
-    if (!ALLOWED_TYPES.includes(file.type))
-      return `Tipo no permitido. Usa: ${ALLOWED_LABELS.join(", ")}`;
-    if (file.size > MAX_FILE_SIZE) return `El archivo supera los ${MAX_UPLOAD_SIZE_MB} MB.`;
-    return null;
   };
 
   const validate = () => {
@@ -727,7 +709,7 @@ export default function AvancesPage() {
                                 <input
                                   type="file"
                                   hidden
-                                  accept=".pdf,.jpg,.jpeg,.png,.docx"
+                                  accept={EXTENSIONES_GENERALES.join(",")}
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file)
@@ -905,12 +887,12 @@ export default function AvancesPage() {
                   <input
                     ref={fileRef}
                     type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.docx"
+                    accept={EXTENSIONES_GENERALES.join(",")}
                     style={{ display: "none" }}
                     disabled={saving}
                     onChange={(e) => {
                       const file = e.target.files?.[0] ?? null;
-                      const err = validateFile(file);
+                      const err = file ? validateFile(file) : null;
                       setFileError(err);
                       if (!err) setForm({ ...form, archivo: file });
                     }}
@@ -922,7 +904,7 @@ export default function AvancesPage() {
                       : "Haz clic para adjuntar un archivo"}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {ALLOWED_LABELS.join(", ")} · Máx {MAX_UPLOAD_SIZE_MB} MB
+                    {EXTENSIONES_GENERALES.join(", ")} · Máx {MAX_UPLOAD_SIZE_MB} MB
                   </Typography>
                 </Box>
                 {(fileError || formErrors.archivo) && (

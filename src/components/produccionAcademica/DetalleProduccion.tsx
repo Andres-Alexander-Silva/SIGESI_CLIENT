@@ -14,7 +14,7 @@ import { ProduccionAcademica, TIPO_LABELS } from '@/types/produccionAcademica';
 import EstadoChip from './EstadoChip';
 import { produccionAcademicaService } from '@/services/produccionAcademica.service';
 import { downloadFile } from '@/utils/downloadFile';
-import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from '@/utils/fileValidation';
+import { validateFile } from '@/utils/fileValidation';
 
 interface Props {
   item: ProduccionAcademica | null;
@@ -68,8 +68,9 @@ export default function DetalleProduccion({ item, canEdit, onClose, onEdit, onRe
   const handleUpload = async (field: 'archivo' | 'certificado', file: File) => {
     setFileError('');
     setFileSuccess('');
-    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      setFileError(`El archivo supera los ${MAX_UPLOAD_SIZE_MB} MB permitidos.`);
+    const fileError = validateFile(file);
+    if (fileError) {
+      setFileError(fileError);
       return;
     }
     setUploading(field);
