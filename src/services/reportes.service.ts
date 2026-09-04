@@ -182,6 +182,19 @@ export const reportesService = {
     return data;
   },
 
+  /**
+   * URL para descarga autenticada del archivo de un informe.
+   * GET /reportes/{id}/archive/download/
+   *
+   * Usar siempre con downloadFile() (utils/downloadFile.ts) — nunca el campo
+   * `archivo` crudo como href: MEDIA solo se sirve directo en DEBUG (ver
+   * config/urls.py en SIGESI_API), así que un enlace directo da 404 en
+   * producción y además no manda el Bearer.
+   */
+  archiveDownloadUrl(id: number): string {
+    return `/reportes/${id}/archive/download/`;
+  },
+
   /** POST /reportes/ — crear informe */
   async createInforme(payload: InformeCreateInput): Promise<Informe> {
     const { data } = await api.post<Informe>("/reportes/", payload);
