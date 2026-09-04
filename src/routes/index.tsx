@@ -44,6 +44,7 @@ import PostulacionesPage from "@/pages/core/PostulacionesPage";
 import ParticipacionesEventoPage from "@/pages/core/ParticipacionesEventoPage";
 import AnaliticaPage from "@/pages/core/AnaliticaPage";
 import AuditoriaPage from "@/pages/config/AuditoriaPage";
+import FormatosPage from "@/pages/reportes/FormatosPage";
 
 function AuthProviderWrapper({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -137,6 +138,7 @@ const router = createBrowserRouter([
 
               // Reportes
               { path: "reportes", element: <ReportesPageWrapper /> },
+              { path: "formatos", element: <FormatosPage /> },
 
               // Rutas administrativas: solo rol `administrador` (ver AdminRoute)
               {

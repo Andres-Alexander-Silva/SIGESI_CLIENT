@@ -248,6 +248,7 @@ const URL_MAP: Record<string, ReactElement> = {
   actividades: <AssignmentOutlined />,
   avances: <TrendingUpOutlined />,
   produccion: <ArticleOutlined />,
+  formatos: <LibraryBooksOutlined />,
   convocatorias: <CampaignOutlined />,
   reportes: <BarChartOutlined />,
   usuarios: <PersonOutlined />,
