@@ -66,7 +66,11 @@ import {
   LineaInvestigacion,
 } from "@/types/core";
 import { UserAdmin } from "@/types";
+<<<<<<< HEAD
 import { validateFileSize } from "@/utils/fileValidation";
+=======
+import { validateFile, EXTENSIONES_AVAL } from "@/utils/fileValidation";
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 const CURRENT_SEMESTER = "2026-1";
 
@@ -967,19 +971,25 @@ export default function SemillerosPage() {
                 color="text.secondary"
                 sx={{ mb: 0.5, display: "block" }}
               >
-                Archivo del aval (PDF, imagen)
+                Archivo del aval (solo PDF)
               </Typography>
               <input
                 ref={avalFileRef}
                 type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                accept=".pdf"
                 style={{ display: "none" }}
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
                   if (file) {
+<<<<<<< HEAD
                     const sizeError = validateFileSize(file);
                     if (sizeError) {
                       setAvalError(sizeError);
+=======
+                    const fileError = validateFile(file, { extensiones: EXTENSIONES_AVAL });
+                    if (fileError) {
+                      setAvalError(fileError);
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
                       e.target.value = "";
                       return;
                     }

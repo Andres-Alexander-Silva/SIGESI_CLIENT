@@ -43,14 +43,13 @@ import {
   SearchOutlined,
   RefreshOutlined,
   TrendingUpOutlined,
-  CheckCircleOutlined,
-  CancelOutlined,
   AttachFileOutlined,
   VisibilityOutlined,
-  CommentOutlined,
-  FilterListOutlined,
   HistoryOutlined,
   PersonOutlined,
+  DescriptionOutlined,
+  ArticleOutlined,
+  CollectionsOutlined,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -66,28 +65,33 @@ import {
   Avance,
   AvanceCreate,
   AvanceUpdate,
-  EstadoAvance,
+  TipoEvidencia,
   Actividad,
 } from "@/types/actividades";
 import { Proyecto } from "@/types/core";
 import { UserAdmin } from "@/types";
+<<<<<<< HEAD
 import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
+=======
+import { validateFile, EXTENSIONES_GENERALES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
+//
+// El recurso real es `Evidencia` (archivo adjunto a una Actividad, sin flujo
+// de aprobación); "Avance" es solo la nomenclatura de esta página.
+// Ver docs/HU-021_PLAN_IMPLEMENTACION.md, fase F0.
 // ─────────────────────────────────────────────────────────────────────────────
-const ESTADOS: {
-  value: EstadoAvance;
-  label: string;
-  color: string;
-}[] = [
-  { value: "borrador", label: "Borrador", color: "#9E9E9E" },
-  { value: "enviado", label: "Enviado", color: "#2196F3" },
-  { value: "en_revision", label: "En Revisión", color: "#FF9800" },
-  { value: "aprobado", label: "Aprobado", color: "#4CAF50" },
-  { value: "rechazado", label: "Rechazado", color: "#F44336" },
+const TIPOS: { value: TipoEvidencia; label: string; color: string }[] = [
+  { value: "documento", label: "Documento", color: "#2196F3" },
+  { value: "acta", label: "Acta", color: "#4CAF50" },
+  { value: "fotografia", label: "Fotografía", color: "#FF9800" },
+  { value: "video", label: "Video", color: "#9C27B0" },
+  { value: "otro", label: "Otro", color: "#9E9E9E" },
 ];
 
+<<<<<<< HEAD
 const MAX_FILE_SIZE = MAX_UPLOAD_SIZE_BYTES;
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -96,12 +100,22 @@ const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 const ALLOWED_LABELS = ["PDF", "JPG", "PNG", "DOCX"];
+=======
+interface AvanceFormState {
+  actividad: number;
+  tipo: TipoEvidencia;
+  titulo: string;
+  descripcion: string;
+  archivo: File | null;
+}
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
-const EMPTY_FORM: AvanceCreate = {
-  descripcion: "",
-  fecha: new Date().toISOString().split("T")[0],
+const EMPTY_FORM: AvanceFormState = {
   actividad: 0,
-  evidencia: null,
+  tipo: "documento",
+  titulo: "",
+  descripcion: "",
+  archivo: null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,14 +130,10 @@ export default function AvancesPage() {
   // Rol actual
   const isStudent =
     activeRole === "estudiante" || activeRole === "lider_estudiantil";
-  const isDirector =
-    activeRole === "director_semillero" || activeRole === "director_grupo";
-  const isAdmin = activeRole === "administrador";
 
-  const canCreate = can("/avances", "crear") || isStudent;
+  const canCreate = can("/avances", "crear");
   const canEdit = can("/avances", "editar");
   const canDelete = can("/avances", "eliminar") && !isStudent;
-  const canAprobar = can("/avances", "aprobar") || isDirector || isAdmin;
 
   // ── Estado principal ────────────────────────────────────────────────────────
   const [avances, setAvances] = useState<Avance[]>([]);
@@ -135,7 +145,7 @@ export default function AvancesPage() {
 
   // Filtros
   const [search, setSearch] = useState("");
-  const [filterEstado, setFilterEstado] = useState<string>("");
+  const [filterTipo, setFilterTipo] = useState<string>("");
   const [filterProyecto, setFilterProyecto] = useState<number | "">("");
   const [filterEstudiante, setFilterEstudiante] = useState<number | "">("");
   const [page, setPage] = useState(0);
@@ -144,20 +154,12 @@ export default function AvancesPage() {
   // Dialog Crear/Editar
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Avance | null>(null);
-  const [form, setForm] = useState<AvanceCreate>(EMPTY_FORM);
+  const [form, setForm] = useState<AvanceFormState>(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [fileError, setFileError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  // Dialog Observaciones/Aprobar
-  const [obsDialog, setObsDialog] = useState<{
-    avance: Avance;
-    mode: "aprobar" | "rechazar" | "ver";
-  } | null>(null);
-  const [observaciones, setObservaciones] = useState("");
-  const [processingObs, setProcessingObs] = useState(false);
 
   // Dialog eliminar
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -169,10 +171,10 @@ export default function AvancesPage() {
     try {
       await downloadFile(
         avancesService.archiveDownloadUrl(av.id),
-        `avance_${av.id}_evidencia.pdf`,
+        av.titulo || `avance_${av.id}`,
       );
     } catch {
-      setError("No se pudo descargar la evidencia.");
+      setError("No se pudo descargar el archivo.");
     } finally {
       setDownloadingId(null);
     }
@@ -183,14 +185,14 @@ export default function AvancesPage() {
     try {
       await avancesService.archiveUpload(av.id, file, {
         actividad: av.actividad,
-        tipo: "documento",
-        titulo: av.descripcion?.slice(0, 100) || `Avance ${av.id}`,
+        tipo: av.tipo,
+        titulo: av.titulo,
         descripcion: av.descripcion,
       });
       setError(null);
       await load();
     } catch {
-      setError("No se pudo subir el archivo de evidencia.");
+      setError("No se pudo subir el archivo.");
     } finally {
       setDownloadingId(null);
     }
@@ -201,9 +203,9 @@ export default function AvancesPage() {
     setError(null);
     try {
       const params: Record<string, string | number> = {};
-      if (filterEstado) params.estado = filterEstado;
-      if (filterProyecto) params.proyecto = filterProyecto;
-      if (filterEstudiante && !isStudent) params.estudiante = filterEstudiante;
+      if (filterTipo) params.tipo = filterTipo;
+      if (filterProyecto) params.proyecto_id = filterProyecto;
+      if (filterEstudiante && !isStudent) params.usuario_id = filterEstudiante;
 
       const [avs, acts, projs] = await Promise.all([
         avancesService.list(params),
@@ -218,7 +220,7 @@ export default function AvancesPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterEstado, filterProyecto, filterEstudiante, isStudent]);
+  }, [filterTipo, filterProyecto, filterEstudiante, isStudent]);
 
   useEffect(() => {
     load();
@@ -236,6 +238,7 @@ export default function AvancesPage() {
   // ── Métricas (para directores/admin) ───────────────────────────────────────
   const metrics = {
     total: avances.length,
+<<<<<<< HEAD
     aprobados: avances.filter((a) => a.estado === "aprobado").length,
     pendientes: avances.filter((a) =>
       ["enviado", "en_revision"].includes(a.estado),
@@ -250,14 +253,20 @@ export default function AvancesPage() {
       return `Tipo no permitido. Usa: ${ALLOWED_LABELS.join(", ")}`;
     if (file.size > MAX_FILE_SIZE) return `El archivo supera los ${MAX_UPLOAD_SIZE_MB} MB.`;
     return null;
+=======
+    documentos: avances.filter((a) => a.tipo === "documento").length,
+    actas: avances.filter((a) => a.tipo === "acta").length,
+    otros: avances.filter((a) => !["documento", "acta"].includes(a.tipo)).length,
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
   };
 
   const validate = () => {
     const errs: Record<string, string> = {};
+    if (!form.titulo.trim()) errs.titulo = "El título es requerido.";
     if (!form.descripcion.trim())
       errs.descripcion = "La descripción es requerida.";
-    if (!form.fecha) errs.fecha = "La fecha es requerida.";
     if (!form.actividad) errs.actividad = "La actividad es requerida.";
+    if (!editing && !form.archivo) errs.archivo = "El archivo es requerido.";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -265,14 +274,13 @@ export default function AvancesPage() {
   // ── Abrir dialog ────────────────────────────────────────────────────────────
   const handleOpen = (av?: Avance) => {
     if (av) {
-      // Solo puede editar su propio avance antes de aprobación
-      if (isStudent && av.estado === "aprobado") return;
       setEditing(av);
       setForm({
-        descripcion: av.descripcion,
-        fecha: av.fecha,
         actividad: av.actividad,
-        evidencia: null,
+        tipo: av.tipo,
+        titulo: av.titulo,
+        descripcion: av.descripcion,
+        archivo: null,
       });
     } else {
       setEditing(null);
@@ -293,13 +301,21 @@ export default function AvancesPage() {
     try {
       if (editing) {
         const update: AvanceUpdate = {
-          descripcion: form.descripcion,
-          fecha: form.fecha,
           actividad: form.actividad,
+          tipo: form.tipo,
+          titulo: form.titulo,
+          descripcion: form.descripcion,
         };
         await avancesService.update(editing.id, update);
       } else {
-        await avancesService.create({ ...form, estado: "enviado" });
+        const create: AvanceCreate = {
+          actividad: form.actividad,
+          tipo: form.tipo,
+          titulo: form.titulo,
+          descripcion: form.descripcion,
+          archivo: form.archivo as File,
+        };
+        await avancesService.create(create);
       }
       setDialogOpen(false);
       await load();
@@ -321,30 +337,6 @@ export default function AvancesPage() {
     }
   };
 
-  // ── Aprobar / Rechazar ───────────────────────────────────────────────────────
-  const handleObsAction = async () => {
-    if (!obsDialog || obsDialog.mode === "ver") {
-      setObsDialog(null);
-      return;
-    }
-    if (obsDialog.mode === "rechazar" && !observaciones.trim()) return;
-    setProcessingObs(true);
-    try {
-      if (obsDialog.mode === "aprobar") {
-        await avancesService.aprobar(obsDialog.avance.id, observaciones);
-      } else {
-        await avancesService.rechazar(obsDialog.avance.id, observaciones);
-      }
-      setObsDialog(null);
-      setObservaciones("");
-      await load();
-    } catch {
-      setError("No se pudo procesar la acción.");
-    } finally {
-      setProcessingObs(false);
-    }
-  };
-
   // ── Eliminar ────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -360,15 +352,16 @@ export default function AvancesPage() {
     }
   };
 
-  const getEstado = (val: string) =>
-    ESTADOS.find((e) => e.value === val) ?? { label: val, color: "#999" };
+  const getTipo = (val: string) =>
+    TIPOS.find((t) => t.value === val) ?? { label: val, color: "#999" };
 
   // ── Filtrado cliente ────────────────────────────────────────────────────────
   const filtered = avances.filter(
     (a) =>
+      (a.titulo ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (a.descripcion ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (a.actividad_titulo ?? "").toLowerCase().includes(search.toLowerCase()) ||
-      (a.estudiante_nombre ?? "").toLowerCase().includes(search.toLowerCase()),
+      (a.subido_por_nombre ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const paginated = filtered.slice(
@@ -398,8 +391,8 @@ export default function AvancesPage() {
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {isStudent
-                ? "Registra y consulta el progreso de tus actividades"
-                : "Seguimiento de avances académicos de estudiantes"}
+                ? "Registra y consulta las evidencias de tus actividades"
+                : "Seguimiento de evidencias académicas de estudiantes"}
             </Typography>
           </Box>
         </Box>
@@ -432,22 +425,22 @@ export default function AvancesPage() {
               icon: <HistoryOutlined />,
             },
             {
-              label: "Aprobados",
-              value: metrics.aprobados,
+              label: "Documentos",
+              value: metrics.documentos,
+              color: "#2196F3",
+              icon: <DescriptionOutlined />,
+            },
+            {
+              label: "Actas",
+              value: metrics.actas,
               color: "#4CAF50",
-              icon: <CheckCircleOutlined />,
+              icon: <ArticleOutlined />,
             },
             {
-              label: "Pendientes",
-              value: metrics.pendientes,
+              label: "Otros",
+              value: metrics.otros,
               color: "#FF9800",
-              icon: <FilterListOutlined />,
-            },
-            {
-              label: "Rechazados",
-              value: metrics.rechazados,
-              color: "#F44336",
-              icon: <CancelOutlined />,
+              icon: <CollectionsOutlined />,
             },
           ].map((m) => (
             <Grid item xs={6} sm={3} key={m.label}>
@@ -522,19 +515,19 @@ export default function AvancesPage() {
           sx={{ minWidth: 220 }}
         />
         <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Estado</InputLabel>
+          <InputLabel>Tipo</InputLabel>
           <Select
-            label="Estado"
-            value={filterEstado}
+            label="Tipo"
+            value={filterTipo}
             onChange={(e) => {
-              setFilterEstado(e.target.value);
+              setFilterTipo(e.target.value);
               setPage(0);
             }}
           >
             <MenuItem value="">Todos</MenuItem>
-            {ESTADOS.map((e) => (
-              <MenuItem key={e.value} value={e.value}>
-                {e.label}
+            {TIPOS.map((t) => (
+              <MenuItem key={t.value} value={t.value}>
+                {t.label}
               </MenuItem>
             ))}
           </Select>
@@ -560,9 +553,9 @@ export default function AvancesPage() {
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 190 }}>
-              <InputLabel>Estudiante</InputLabel>
+              <InputLabel>Subido por</InputLabel>
               <Select
-                label="Estudiante"
+                label="Subido por"
                 value={filterEstudiante}
                 onChange={(e) => {
                   setFilterEstudiante(e.target.value as number | "");
@@ -593,14 +586,14 @@ export default function AvancesPage() {
           <Table size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: isDark ? "grey.800" : "grey.100" }}>
-                <TableCell sx={{ fontWeight: 700 }}>Descripción</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Título</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Actividad</TableCell>
                 {!isStudent && (
-                  <TableCell sx={{ fontWeight: 700 }}>Estudiante</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Subido por</TableCell>
                 )}
-                <TableCell sx={{ fontWeight: 700 }}>Fecha</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Estado</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Evidencia</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Registrado</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Tipo</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Archivo</TableCell>
                 <TableCell sx={{ fontWeight: 700, textAlign: "center" }}>
                   Acciones
                 </TableCell>
@@ -641,9 +634,8 @@ export default function AvancesPage() {
                 </TableRow>
               ) : (
                 paginated.map((av) => {
-                  const estado = getEstado(av.estado);
-                  const canEditThis =
-                    (canEdit || isStudent) && av.estado !== "aprobado";
+                  const tipo = getTipo(av.tipo);
+                  const canEditThis = canEdit;
                   return (
                     <TableRow
                       key={av.id}
@@ -651,8 +643,12 @@ export default function AvancesPage() {
                       sx={{ "&:last-child td": { border: 0 } }}
                     >
                       <TableCell sx={{ maxWidth: 240 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {av.titulo}
+                        </Typography>
                         <Typography
-                          variant="body2"
+                          variant="caption"
+                          color="text.secondary"
                           sx={{
                             display: "-webkit-box",
                             WebkitLineClamp: 2,
@@ -662,15 +658,6 @@ export default function AvancesPage() {
                         >
                           {av.descripcion}
                         </Typography>
-                        {av.observaciones && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ fontStyle: "italic" }}
-                          >
-                            Obs: {av.observaciones.slice(0, 60)}…
-                          </Typography>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
@@ -688,29 +675,31 @@ export default function AvancesPage() {
                           >
                             <PersonOutlined fontSize="small" color="action" />
                             <Typography variant="body2">
-                              {av.estudiante_nombre ?? "—"}
+                              {av.subido_por_nombre ?? "—"}
                             </Typography>
                           </Box>
                         </TableCell>
                       )}
                       <TableCell>
-                        <Typography variant="body2">{av.fecha}</Typography>
+                        <Typography variant="body2">
+                          {av.created_at?.slice(0, 10) ?? "—"}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={estado.label}
+                          label={tipo.label}
                           size="small"
                           sx={{
-                            bgcolor: estado.color + "22",
-                            color: estado.color,
+                            bgcolor: tipo.color + "22",
+                            color: tipo.color,
                             fontWeight: 600,
                             borderRadius: 1,
                           }}
                         />
                       </TableCell>
                       <TableCell>
-                        {av.evidencia ? (
-                          <Tooltip title="Descargar evidencia">
+                        {av.archivo ? (
+                          <Tooltip title="Descargar archivo">
                             <span>
                               <IconButton
                                 size="small"
@@ -731,40 +720,39 @@ export default function AvancesPage() {
                             Sin archivo
                           </Typography>
                         )}
-                        {(canEdit || isStudent) &&
-                          av.estado !== "aprobado" && (
-                            <Tooltip title="Subir / reemplazar evidencia">
-                              <span>
-                                <IconButton
-                                  size="small"
-                                  disabled={
-                                    downloadingId === `upload_${av.id}`
-                                  }
-                                  component="label"
-                                >
-                                  {downloadingId === `upload_${av.id}` ? (
-                                    <CircularProgress size={16} />
-                                  ) : (
-                                    <AttachFileOutlined
-                                      fontSize="small"
-                                      color="action"
-                                    />
-                                  )}
-                                  <input
-                                    type="file"
-                                    hidden
-                                    accept=".pdf,.jpg,.jpeg,.png,.docx"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file)
-                                        handleUploadEvidencia(av, file);
-                                      e.target.value = "";
-                                    }}
+                        {canEditThis && (
+                          <Tooltip title="Subir / reemplazar archivo">
+                            <span>
+                              <IconButton
+                                size="small"
+                                disabled={
+                                  downloadingId === `upload_${av.id}`
+                                }
+                                component="label"
+                              >
+                                {downloadingId === `upload_${av.id}` ? (
+                                  <CircularProgress size={16} />
+                                ) : (
+                                  <AttachFileOutlined
+                                    fontSize="small"
+                                    color="action"
                                   />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                          )}
+                                )}
+                                <input
+                                  type="file"
+                                  hidden
+                                  accept={EXTENSIONES_GENERALES.join(",")}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file)
+                                      handleUploadEvidencia(av, file);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        )}
                       </TableCell>
                       <TableCell align="center">
                         <Stack
@@ -772,21 +760,7 @@ export default function AvancesPage() {
                           justifyContent="center"
                           spacing={0.5}
                         >
-                          {/* Ver observaciones */}
-                          {av.observaciones && (
-                            <Tooltip title="Ver observaciones">
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  setObsDialog({ avance: av, mode: "ver" })
-                                }
-                              >
-                                <CommentOutlined fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-
-                          {/* Editar (propio o con permiso, antes de aprobado) */}
+                          {/* Editar (propio o con permiso) */}
                           {canEditThis && (
                             <Tooltip title="Editar">
                               <IconButton
@@ -798,44 +772,6 @@ export default function AvancesPage() {
                               </IconButton>
                             </Tooltip>
                           )}
-
-                          {/* Aprobar (director/admin) */}
-                          {canAprobar &&
-                            av.estado !== "aprobado" &&
-                            av.estado !== "rechazado" && (
-                              <>
-                                <Tooltip title="Aprobar">
-                                  <IconButton
-                                    size="small"
-                                    sx={{ color: "#4CAF50" }}
-                                    onClick={() => {
-                                      setObsDialog({
-                                        avance: av,
-                                        mode: "aprobar",
-                                      });
-                                      setObservaciones("");
-                                    }}
-                                  >
-                                    <CheckCircleOutlined fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Rechazar">
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => {
-                                      setObsDialog({
-                                        avance: av,
-                                        mode: "rechazar",
-                                      });
-                                      setObservaciones("");
-                                    }}
-                                  >
-                                    <CancelOutlined fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </>
-                            )}
 
                           {/* Eliminar */}
                           {canDelete && (
@@ -892,6 +828,33 @@ export default function AvancesPage() {
             {saveError && <Alert severity="error">{saveError}</Alert>}
 
             <TextField
+              label="Título *"
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+              error={!!formErrors.titulo}
+              helperText={formErrors.titulo}
+              disabled={saving}
+              fullWidth
+            />
+
+            <FormControl fullWidth disabled={saving}>
+              <InputLabel>Tipo *</InputLabel>
+              <Select
+                label="Tipo *"
+                value={form.tipo}
+                onChange={(e) =>
+                  setForm({ ...form, tipo: e.target.value as TipoEvidencia })
+                }
+              >
+                {TIPOS.map((t) => (
+                  <MenuItem key={t.value} value={t.value}>
+                    {t.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
               label="Descripción *"
               value={form.descripcion}
               onChange={(e) =>
@@ -905,18 +868,6 @@ export default function AvancesPage() {
               disabled={saving}
               multiline
               rows={4}
-              fullWidth
-            />
-
-            <TextField
-              label="Fecha *"
-              type="date"
-              value={form.fecha}
-              onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-              error={!!formErrors.fecha}
-              helperText={formErrors.fecha}
-              disabled={saving}
-              InputLabelProps={{ shrink: true }}
               fullWidth
             />
 
@@ -936,58 +887,69 @@ export default function AvancesPage() {
               )}
             />
 
-            {/* Evidencia */}
-            <Box>
-              <Typography variant="body2" fontWeight={600} gutterBottom>
-                Evidencia (opcional)
-              </Typography>
-              <Box
-                sx={{
-                  border: "2px dashed",
-                  borderColor: fileError ? "error.main" : "divider",
-                  borderRadius: 1,
-                  p: 2,
-                  textAlign: "center",
-                  bgcolor: isDark ? "grey.900" : "grey.50",
-                  cursor: "pointer",
-                  transition: "border-color 0.2s",
-                  "&:hover": { borderColor: "primary.main" },
-                }}
-                onClick={() => fileRef.current?.click()}
-              >
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.docx"
-                  style={{ display: "none" }}
-                  disabled={saving}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] ?? null;
-                    const err = validateFile(file);
-                    setFileError(err);
-                    if (!err) setForm({ ...form, evidencia: file });
+            {/* Archivo — solo al crear; para reemplazarlo en un avance
+                existente se usa el botón dedicado de la tabla. */}
+            {editing ? (
+              <Alert severity="info" variant="outlined">
+                El archivo se reemplaza con el botón de la tabla, no desde
+                este formulario.
+              </Alert>
+            ) : (
+              <Box>
+                <Typography variant="body2" fontWeight={600} gutterBottom>
+                  Archivo *
+                </Typography>
+                <Box
+                  sx={{
+                    border: "2px dashed",
+                    borderColor:
+                      fileError || formErrors.archivo
+                        ? "error.main"
+                        : "divider",
+                    borderRadius: 1,
+                    p: 2,
+                    textAlign: "center",
+                    bgcolor: isDark ? "grey.900" : "grey.50",
+                    cursor: "pointer",
+                    transition: "border-color 0.2s",
+                    "&:hover": { borderColor: "primary.main" },
                   }}
-                />
-                <AttachFileOutlined color="action" sx={{ mb: 0.5 }} />
-                <Typography variant="body2" color="text.secondary">
-                  {form.evidencia
-                    ? form.evidencia.name
-                    : "Haz clic para adjuntar un archivo"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {ALLOWED_LABELS.join(", ")} · Máx 5 MB
-                </Typography>
-              </Box>
-              {fileError && (
-                <Typography
-                  variant="caption"
-                  color="error"
-                  sx={{ mt: 0.5, display: "block" }}
+                  onClick={() => fileRef.current?.click()}
                 >
-                  {fileError}
-                </Typography>
-              )}
-            </Box>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept={EXTENSIONES_GENERALES.join(",")}
+                    style={{ display: "none" }}
+                    disabled={saving}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      const err = file ? validateFile(file) : null;
+                      setFileError(err);
+                      if (!err) setForm({ ...form, archivo: file });
+                    }}
+                  />
+                  <AttachFileOutlined color="action" sx={{ mb: 0.5 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {form.archivo
+                      ? form.archivo.name
+                      : "Haz clic para adjuntar un archivo"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {EXTENSIONES_GENERALES.join(", ")} · Máx {MAX_UPLOAD_SIZE_MB} MB
+                  </Typography>
+                </Box>
+                {(fileError || formErrors.archivo) && (
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{ mt: 0.5, display: "block" }}
+                  >
+                    {fileError || formErrors.archivo}
+                  </Typography>
+                )}
+              </Box>
+            )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -1006,93 +968,6 @@ export default function AvancesPage() {
           >
             {saving ? "Guardando…" : editing ? "Actualizar" : "Registrar"}
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* ── Dialog Aprobar / Rechazar / Ver obs ── */}
-      <Dialog
-        open={!!obsDialog}
-        onClose={() => !processingObs && setObsDialog(null)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          {obsDialog?.mode === "aprobar"
-            ? "Aprobar Avance"
-            : obsDialog?.mode === "rechazar"
-              ? "Rechazar Avance"
-              : "Observaciones"}
-        </DialogTitle>
-        <DialogContent>
-          {obsDialog?.avance && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Avance:
-              </Typography>
-              <Typography variant="body2">
-                {obsDialog.avance.descripcion.slice(0, 120)}
-                {obsDialog.avance.descripcion.length > 120 ? "…" : ""}
-              </Typography>
-            </Box>
-          )}
-          {obsDialog?.mode !== "ver" ? (
-            <TextField
-              label={
-                obsDialog?.mode === "rechazar"
-                  ? "Motivo del rechazo *"
-                  : "Observaciones (opcional)"
-              }
-              value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-              disabled={processingObs}
-              error={obsDialog?.mode === "rechazar" && !observaciones.trim()}
-              helperText={
-                obsDialog?.mode === "rechazar" && !observaciones.trim()
-                  ? "El motivo es requerido."
-                  : ""
-              }
-            />
-          ) : (
-            <Paper
-              variant="outlined"
-              sx={{ p: 2, bgcolor: isDark ? "grey.900" : "grey.50" }}
-            >
-              <Typography variant="body2">
-                {obsDialog?.avance?.observaciones ?? "Sin observaciones."}
-              </Typography>
-            </Paper>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setObsDialog(null)}
-            disabled={processingObs}
-            color="inherit"
-          >
-            {obsDialog?.mode === "ver" ? "Cerrar" : "Cancelar"}
-          </Button>
-          {obsDialog?.mode !== "ver" && (
-            <Button
-              variant="contained"
-              color={obsDialog?.mode === "rechazar" ? "error" : "success"}
-              onClick={handleObsAction}
-              disabled={
-                processingObs ||
-                (obsDialog?.mode === "rechazar" && !observaciones.trim())
-              }
-              startIcon={processingObs ? <CircularProgress size={16} /> : null}
-            >
-              {processingObs
-                ? "Procesando…"
-                : obsDialog?.mode === "aprobar"
-                  ? "Confirmar Aprobación"
-                  : "Confirmar Rechazo"}
-            </Button>
-          )}
         </DialogActions>
       </Dialog>
 

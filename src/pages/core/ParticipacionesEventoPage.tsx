@@ -48,7 +48,6 @@ import {
 } from "@/services/convocatorias.service";
 import { usersService } from "@/services/config.service";
 import { usePermissions } from "@/context/PermissionsContext";
-import { useAuth } from "@/context/AuthContext";
 import {
   ParticipacionEvento,
   ParticipacionEventoCreate,
@@ -56,7 +55,11 @@ import {
   Evento,
 } from "@/types/convocatorias";
 import { UserAdmin } from "@/types";
+<<<<<<< HEAD
 import { validateFileSize, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
+=======
+import { validateFile, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -99,20 +102,9 @@ export default function ParticipacionesEventoPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const { can } = usePermissions();
-  const { activeRole } = useAuth();
 
-  const canWrite =
-    can("/participaciones_evento", "crear") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo" ||
-    activeRole === "director_semillero" ||
-    activeRole === "lider_estudiantil";
-  const canDelete =
-    can("/participaciones_evento", "eliminar") ||
-    activeRole === "administrador" ||
-    activeRole === "director_grupo" ||
-    activeRole === "director_semillero" ||
-    activeRole === "lider_estudiantil";
+  const canWrite = can("/participaciones_evento", "crear");
+  const canDelete = can("/participaciones_evento", "eliminar");
 
   // ─── Datos ───────────────────────────────────────────────────────────────
   const [participaciones, setParticipaciones] = useState<ParticipacionEvento[]>([]);
@@ -266,9 +258,15 @@ export default function ParticipacionesEventoPage() {
 
   const handleUploadCertificado = async (file: File) => {
     if (!uploadTarget) return;
+<<<<<<< HEAD
     const sizeError = validateFileSize(file);
     if (sizeError) {
       setUploadError(sizeError);
+=======
+    const fileError = validateFile(file);
+    if (fileError) {
+      setUploadError(fileError);
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
       return;
     }
     setUploading(true);

@@ -50,6 +50,10 @@ import type {
   PaginatedResponse,
 } from "@/services/reportes.service";
 import { formatApiError } from "@/utils/apiError";
+<<<<<<< HEAD
+=======
+import { downloadFile } from "@/utils/downloadFile";
+>>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -451,6 +455,25 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
     "proyectos" | "semilleros" | "informes"
   >("proyectos");
   const [page, setPage] = useState(0);
+  const [downloadingInformeId, setDownloadingInformeId] = useState<
+    number | null
+  >(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  const handleDownloadInforme = async (informe: Informe) => {
+    setDownloadingInformeId(informe.id);
+    setDownloadError(null);
+    try {
+      await downloadFile(
+        reportesService.archiveDownloadUrl(informe.id),
+        `informe_${informe.id}_${informe.titulo}`,
+      );
+    } catch {
+      setDownloadError("No se pudo descargar el archivo del informe.");
+    } finally {
+      setDownloadingInformeId(null);
+    }
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -1116,6 +1139,15 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
               {errorInformes}
             </Alert>
           )}
+          {downloadError && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setDownloadError(null)}
+            >
+              {downloadError}
+            </Alert>
+          )}
           <TableContainer
             sx={{
               border: "1px solid",
@@ -1239,15 +1271,19 @@ function VistaDirector({ token, role }: { token: string; role: UserRole }) {
                         <TableCell>
                           {inf.archivo ? (
                             <Tooltip title="Descargar archivo">
-                              <IconButton
-                                size="small"
-                                component="a"
-                                href={inf.archivo}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <FileDownloadIcon fontSize="small" />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  disabled={downloadingInformeId === inf.id}
+                                  onClick={() => handleDownloadInforme(inf)}
+                                >
+                                  {downloadingInformeId === inf.id ? (
+                                    <CircularProgress size={16} />
+                                  ) : (
+                                    <FileDownloadIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                              </span>
                             </Tooltip>
                           ) : (
                             <Typography variant="caption" color="text.disabled">
