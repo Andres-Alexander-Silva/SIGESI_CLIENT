@@ -55,11 +55,7 @@ import {
   Evento,
 } from "@/types/convocatorias";
 import { UserAdmin } from "@/types";
-<<<<<<< HEAD
-import { validateFileSize, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
-=======
 import { validateFile, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -258,15 +254,9 @@ export default function ParticipacionesEventoPage() {
 
   const handleUploadCertificado = async (file: File) => {
     if (!uploadTarget) return;
-<<<<<<< HEAD
-    const sizeError = validateFileSize(file);
-    if (sizeError) {
-      setUploadError(sizeError);
-=======
     const fileError = validateFile(file);
     if (fileError) {
       setUploadError(fileError);
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
       return;
     }
     setUploading(true);

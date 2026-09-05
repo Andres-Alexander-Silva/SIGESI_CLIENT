@@ -70,11 +70,7 @@ import {
 } from "@/types/actividades";
 import { Proyecto } from "@/types/core";
 import { UserAdmin } from "@/types";
-<<<<<<< HEAD
-import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
-=======
 import { validateFile, EXTENSIONES_GENERALES, MAX_UPLOAD_SIZE_MB } from "@/utils/fileValidation";
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
@@ -91,16 +87,6 @@ const TIPOS: { value: TipoEvidencia; label: string; color: string }[] = [
   { value: "otro", label: "Otro", color: "#9E9E9E" },
 ];
 
-<<<<<<< HEAD
-const MAX_FILE_SIZE = MAX_UPLOAD_SIZE_BYTES;
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-const ALLOWED_LABELS = ["PDF", "JPG", "PNG", "DOCX"];
-=======
 interface AvanceFormState {
   actividad: number;
   tipo: TipoEvidencia;
@@ -108,7 +94,6 @@ interface AvanceFormState {
   descripcion: string;
   archivo: File | null;
 }
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 const EMPTY_FORM: AvanceFormState = {
   actividad: 0,
@@ -238,26 +223,9 @@ export default function AvancesPage() {
   // ── Métricas (para directores/admin) ───────────────────────────────────────
   const metrics = {
     total: avances.length,
-<<<<<<< HEAD
-    aprobados: avances.filter((a) => a.estado === "aprobado").length,
-    pendientes: avances.filter((a) =>
-      ["enviado", "en_revision"].includes(a.estado),
-    ).length,
-    rechazados: avances.filter((a) => a.estado === "rechazado").length,
-  };
-
-  // ── Validaciones ────────────────────────────────────────────────────────────
-  const validateFile = (file: File | null): string | null => {
-    if (!file) return null;
-    if (!ALLOWED_TYPES.includes(file.type))
-      return `Tipo no permitido. Usa: ${ALLOWED_LABELS.join(", ")}`;
-    if (file.size > MAX_FILE_SIZE) return `El archivo supera los ${MAX_UPLOAD_SIZE_MB} MB.`;
-    return null;
-=======
     documentos: avances.filter((a) => a.tipo === "documento").length,
     actas: avances.filter((a) => a.tipo === "acta").length,
     otros: avances.filter((a) => !["documento", "acta"].includes(a.tipo)).length,
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
   };
 
   const validate = () => {

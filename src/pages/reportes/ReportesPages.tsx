@@ -50,10 +50,7 @@ import type {
   PaginatedResponse,
 } from "@/services/reportes.service";
 import { formatApiError } from "@/utils/apiError";
-<<<<<<< HEAD
-=======
 import { downloadFile } from "@/utils/downloadFile";
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 

@@ -52,11 +52,7 @@ import { cronogramaProyectoService } from "@/services/cronogramaProyecto.service
 import { proyectosService } from "@/services/core.service";
 import { usePermissions } from "@/context/PermissionsContext";
 import { downloadFile } from "@/utils/downloadFile";
-<<<<<<< HEAD
-import { validateFileSize } from "@/utils/fileValidation";
-=======
 import { validateFile, EXTENSIONES_GENERALES } from "@/utils/fileValidation";
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
 
 const EMPTY_FORM: Omit<CronogramaProyectoCreate, "proyecto"> = {
   actividad: "",
@@ -130,15 +126,9 @@ export default function CronogramaProyectoPage() {
     item: CronogramaProyecto,
     file: File,
   ) => {
-<<<<<<< HEAD
-    const sizeError = validateFileSize(file);
-    if (sizeError) {
-      setError(sizeError);
-=======
     const fileError = validateFile(file);
     if (fileError) {
       setError(fileError);
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
       return;
     }
     setUploadingId(item.id);
@@ -746,15 +736,9 @@ export default function CronogramaProyectoPage() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-<<<<<<< HEAD
-                  const sizeError = validateFileSize(file);
-                  if (sizeError) {
-                    setFormError(sizeError);
-=======
                   const fileError = validateFile(file);
                   if (fileError) {
                     setFormError(fileError);
->>>>>>> cd7e30e282ae75b23621415c31ae8cb393375c05
                     e.target.value = "";
                     return;
                   }
